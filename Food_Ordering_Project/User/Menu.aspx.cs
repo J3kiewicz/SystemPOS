@@ -116,7 +116,7 @@ namespace Food_Ordering_Project.User
             sda = new SqlDataAdapter(cmd);
             dt = new DataTable();
             sda.Fill(dt);
-            int quantity = 0;
+            int quantity = 0; 
             if (dt.Rows.Count > 0)
             {
                 quantity = Convert.ToInt32(dt.Rows[0]["Quantity"]);

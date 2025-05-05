@@ -232,6 +232,7 @@
     <Content Include="User\Login.aspx" />
     <Content Include="User\Menu.aspx" />
     <Content Include="User\MenuUserControl.ascx" />
+    <Content Include="User\Order.aspx" />
     <Content Include="User\Payment.aspx" />
     <Content Include="User\Profile.aspx" />
     <Content Include="User\Registration.aspx" />
@@ -341,6 +342,13 @@
     </Compile>
     <Compile Include="User\MenuUserControl.ascx.designer.cs">
       <DependentUpon>MenuUserControl.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="User\Order.aspx.cs">
+      <DependentUpon>Order.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="User\Order.aspx.designer.cs">
+      <DependentUpon>Order.aspx</DependentUpon>
     </Compile>
     <Compile Include="User\Payment.aspx.cs">
       <DependentUpon>Payment.aspx</DependentUpon>
