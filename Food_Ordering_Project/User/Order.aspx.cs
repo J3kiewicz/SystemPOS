@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Data;
-using System.Linq;
-using System.Web;
+using System.Data.SqlClient;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -11,28 +8,55 @@ namespace Food_Ordering_Project.User
 {
     public partial class Order : System.Web.UI.Page
     {
-
         SqlConnection con;
         SqlCommand cmd;
         SqlDataAdapter sda;
         DataTable dt;
         decimal grandTotal = 0;
 
+        private int CurrentTableId { get; set; }
+        private int CurrentOrderDetailsId { get; set; }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
-                getCategories();
-                getProducts();
                 if (Session["userId"] == null)
                 {
                     Response.Redirect("Login.aspx");
                 }
                 else
                 {
-                    getCartItems();
+                    InitializeOrderData();
+                    LoadPageData();
                 }
             }
+        }
+
+        private void InitializeOrderData()
+        {
+            if (!string.IsNullOrEmpty(Request.QueryString["TableId"]))
+            {
+                CurrentTableId = Convert.ToInt32(Request.QueryString["TableId"]);
+                lblTableNumber.Text = CurrentTableId.ToString();
+            }
+
+            if (!string.IsNullOrEmpty(Request.QueryString["OrderDetailsId"]))
+            {
+                CurrentOrderDetailsId = Convert.ToInt32(Request.QueryString["OrderDetailsId"]);
+            }
+
+            if (CurrentTableId == 0 || CurrentOrderDetailsId == 0)
+            {
+                Response.Redirect("Table.aspx");
+            }
+        }
+
+        private void LoadPageData()
+        {
+            getCategories();
+            getProducts();
+            getCartItems();
         }
 
         void getCategories()
@@ -64,207 +88,242 @@ namespace Food_Ordering_Project.User
 
         protected void rProducts_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            //if (e.CommandName == "addToCart")
-            //{
-            //    Response.Redirect("Cart.aspx?pid=" + e.CommandArgument);
-            //}
-            if (Session["userId"] != null)
+            if (e.CommandName == "addToCart")
             {
-                bool isCartItemUpdated = false;
-                int i = isItemExistInCart(Convert.ToInt32(e.CommandArgument));
-                if (i == 0)
-                { //Adding new item in cart
-                    con = new SqlConnection(Connection.GetConnectionString());
-                    cmd = new SqlCommand("Cart_Crud", con);
-                    cmd.Parameters.AddWithValue("@Action", "INSERT");
-                    cmd.Parameters.AddWithValue("@ProductId", e.CommandArgument);
-                    cmd.Parameters.AddWithValue("@Quantity", 1);
-                    cmd.Parameters.AddWithValue("@UserId", Session["userId"]);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    try
-                    {
-                        con.Open();
-                        cmd.ExecuteNonQuery();
-                        //lblMsg.Visible = true;
-                        //lblMsg.Text = "Item added successfully in your cart!";
-                        //lblMsg.CssClass = "alert alert-success";
-                    }
-                    catch (Exception ex)
-                    {
-                        Response.Write("<script>alert('Error - " + ex.Message + "');</script>");
-                    }
-                    finally
-                    {
-                        con.Close();
-                    }
-                }
-                else
-                { //Adding existing item in cart
-                    Utils utils = new Utils();
-                    isCartItemUpdated = utils.updateCartQuantity((i + 1), Convert.ToInt32(e.CommandArgument), Convert.ToInt32(Session["userId"]));
-                }
-                //Response.Redirect("Cart.aspx");
-                lblMsg.Visible = true;
-                lblMsg.Text = "Item added successfully in your cart!";
-                lblMsg.CssClass = "alert alert-success";
-                Response.AddHeader("REFRESH", "1;URL=Cart.aspx");
+                AddToCart(Convert.ToInt32(e.CommandArgument));
             }
-            else
+        }
+        protected void AddToCart(int productId)
+        {
+            if (Session["userId"] == null)
             {
                 Response.Redirect("Login.aspx");
+                return;
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+                {
+                    con.Open();
+
+                    // Upewnij się, że TableId jest prawidłowe
+                    int tableId = CurrentTableId;
+                    if (tableId <= 0)
+                    {
+                        // Jeśli nie wybrano stolika, znajdź pierwszy aktywny
+                        SqlCommand getTableCmd = new SqlCommand(
+                            "SELECT TOP 1 TableId FROM Tables WHERE IsActive = 1 ORDER BY TableId",
+                            con);
+                        object result = getTableCmd.ExecuteScalar();
+                        if (result == null)
+                        {
+                            ShowMessage("No active tables available", "danger");
+                            return;
+                        }
+                        tableId = Convert.ToInt32(result);
+                    }
+
+                    SqlCommand cmd = new SqlCommand("Cart_Crud", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Action", "INSERT");
+                    cmd.Parameters.AddWithValue("@ProductId", productId);
+                    cmd.Parameters.AddWithValue("@Quantity", 1);
+                    cmd.Parameters.AddWithValue("@UserId", Convert.ToInt32(Session["userId"]));
+                    cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+                    cmd.Parameters.AddWithValue("@TableId", tableId); // Przekaż TableId
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            CurrentOrderDetailsId = Convert.ToInt32(reader["OrderDetailsId"]);
+                        }
+                    }
+
+                    ShowMessage("Product added to cart", "success");
+                    getCartItems();
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage("Error: " + ex.Message, "danger");
             }
         }
 
-        int isItemExistInCart(int productId)
+        private int GetCartItemQuantity(int productId)
         {
             con = new SqlConnection(Connection.GetConnectionString());
             cmd = new SqlCommand("Cart_Crud", con);
             cmd.Parameters.AddWithValue("@Action", "GETBYID");
             cmd.Parameters.AddWithValue("@ProductId", productId);
-            cmd.Parameters.AddWithValue("@UserId", Session["userId"]);
+            cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
             cmd.CommandType = CommandType.StoredProcedure;
             sda = new SqlDataAdapter(cmd);
             dt = new DataTable();
             sda.Fill(dt);
-            int quantity = 0;
-            if (dt.Rows.Count > 0)
-            {
-                quantity = Convert.ToInt32(dt.Rows[0]["Quantity"]);
-            }
-            return quantity;
+            return dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["Quantity"]) : 0;
         }
 
+        private void InsertNewCartItem(int productId)
+        {
+            con = new SqlConnection(Connection.GetConnectionString());
+            cmd = new SqlCommand("Cart_Crud", con);
+            cmd.Parameters.AddWithValue("@Action", "INSERT");
+            cmd.Parameters.AddWithValue("@ProductId", productId);
+            cmd.Parameters.AddWithValue("@Quantity", 1);
+            cmd.Parameters.AddWithValue("@UserId", Session["userId"]);
+            cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            try
+            {
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                ShowMessage("Error - " + ex.Message, "danger");
+            }
+            finally
+            {
+                con.Close();
+            }
+        }
+
+        private void UpdateCartItemQuantity(int productId, int newQuantity)
+        {
+            Utils utils = new Utils();
+            bool isUpdated = utils.updateCartQuantity(newQuantity, productId,
+                Convert.ToInt32(Session["userId"]), CurrentOrderDetailsId);
+
+            if (!isUpdated)
+            {
+                ShowMessage("Failed to update item quantity", "danger");
+            }
+        }
 
         private void getCartItems()
         {
             con = new SqlConnection(Connection.GetConnectionString());
             cmd = new SqlCommand("Cart_Crud", con);
             cmd.Parameters.AddWithValue("@Action", "SELECT");
-            cmd.Parameters.AddWithValue("@UserId", Session["userId"]);
+            cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+            cmd.Parameters.AddWithValue("@TableId", CurrentTableId);
             cmd.CommandType = CommandType.StoredProcedure;
             sda = new SqlDataAdapter(cmd);
             dt = new DataTable();
             sda.Fill(dt);
             rCartItem.DataSource = dt;
+
             if (dt.Rows.Count == 0)
             {
                 rCartItem.FooterTemplate = null;
                 rCartItem.FooterTemplate = new CustomTemplate(ListItemType.Footer);
             }
+
             rCartItem.DataBind();
         }
 
         protected void rCartItem_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            Utils utils = new Utils();
-            if (e.CommandName == "remove")
+            switch (e.CommandName)
             {
-                con = new SqlConnection(Connection.GetConnectionString());
-                cmd = new SqlCommand("Cart_Crud", con);
-                cmd.Parameters.AddWithValue("@Action", "DELETE");
-                cmd.Parameters.AddWithValue("@ProductId", e.CommandArgument);
-                cmd.Parameters.AddWithValue("@UserId", Session["userId"]);
-                cmd.CommandType = CommandType.StoredProcedure;
-                try
-                {
-                    con.Open();
-                    cmd.ExecuteNonQuery();
-                    getCartItems();
-                    //Cart Count
-                    Session["cartCount"] = utils.cartCount(Convert.ToInt32(Session["userId"]));
-                }
-                catch (Exception ex)
-                {
-                    Response.Write("<script>alert('Error - " + ex.Message + "');</script>");
-                }
-                finally
-                {
-                    con.Close();
-                }
+                case "remove":
+                    RemoveCartItem(Convert.ToInt32(e.CommandArgument));
+                    break;
+                case "updateCart":
+                    UpdateCart();
+                    break;
+                case "checkout":
+                    CheckoutOrder();
+                    break;
             }
+        }
 
-            if (e.CommandName == "updateCart")
+        private void RemoveCartItem(int productId)
+        {
+            con = new SqlConnection(Connection.GetConnectionString());
+            cmd = new SqlCommand("Cart_Crud", con);
+            cmd.Parameters.AddWithValue("@Action", "DELETE");
+            cmd.Parameters.AddWithValue("@ProductId", productId);
+            cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            try
             {
-                bool isCartUpdated = false;
-                //foreach (RepeaterItem item in rCartItem.Items)
-                for (int item = 0; item < rCartItem.Items.Count; item++)
-                {
-                    if (rCartItem.Items[item].ItemType == ListItemType.Item || rCartItem.Items[item].ItemType == ListItemType.AlternatingItem)
-                    {
-                        TextBox quantity = rCartItem.Items[item].FindControl("txtQuantity") as TextBox;
-                        HiddenField _productId = rCartItem.Items[item].FindControl("hdnProductId") as HiddenField;
-                        HiddenField _quantity = rCartItem.Items[item].FindControl("hdnQuantity") as HiddenField;
-                        int quantityFromCart = Convert.ToInt32(quantity.Text);
-                        int ProductId = Convert.ToInt32(_productId.Value);
-                        int quantityFromDB = Convert.ToInt32(_quantity.Value);
-                        bool isTrue = false;
-                        int updatedQuantity = 1;
-                        if (quantityFromCart > quantityFromDB)
-                        {
-                            updatedQuantity = quantityFromCart;
-                            isTrue = true;
-                        }
-                        else if (quantityFromCart < quantityFromDB)
-                        {
-                            updatedQuantity = quantityFromCart;
-                            isTrue = true;
-                        }
-
-                        if (isTrue)
-                        {
-                            //Update cart item quantity in db.
-                            isCartUpdated = utils.updateCartQuantity(updatedQuantity, ProductId, Convert.ToInt32(Session["userId"]));
-                            ////Cart Count
-                            //Session["cartCount"] = utils.cartCount(Convert.ToInt32(Session["userId"]));
-                        }
-                    }
-                }
+                con.Open();
+                cmd.ExecuteNonQuery();
                 getCartItems();
+                ShowMessage("Item removed from cart!", "warning");
             }
-
-            if (e.CommandName == "checkout")
+            catch (Exception ex)
             {
-                bool isTrue = false;
-                //int pId;
-                string pName = string.Empty;
-                // First will check item quantity
-                for (int item = 0; item < rCartItem.Items.Count; item++)
+                ShowMessage("Error - " + ex.Message, "danger");
+            }
+            finally
+            {
+                con.Close();
+            }
+        }
+
+        private void UpdateCart()
+        {
+            bool hasError = false;
+
+            for (int item = 0; item < rCartItem.Items.Count; item++)
+            {
+                if (rCartItem.Items[item].ItemType == ListItemType.Item ||
+                    rCartItem.Items[item].ItemType == ListItemType.AlternatingItem)
                 {
-                    if (rCartItem.Items[item].ItemType == ListItemType.Item || rCartItem.Items[item].ItemType == ListItemType.AlternatingItem)
+                    TextBox quantity = rCartItem.Items[item].FindControl("txtQuantity") as TextBox;
+                    HiddenField productId = rCartItem.Items[item].FindControl("hdnProductId") as HiddenField;
+
+                    if (int.TryParse(quantity.Text, out int newQuantity) && productId != null)
                     {
-                        HiddenField _productId = rCartItem.Items[item].FindControl("hdnProductId") as HiddenField;
-                        HiddenField _cartQuantity = rCartItem.Items[item].FindControl("hdnQuantity") as HiddenField;
-                        HiddenField _productQuantity = rCartItem.Items[item].FindControl("hdnPrdQuantity") as HiddenField;
-                        Label productName = rCartItem.Items[item].FindControl("lblName") as Label;
+                        Utils utils = new Utils();
+                        bool isUpdated = utils.updateCartQuantity(
+                            newQuantity,
+                            Convert.ToInt32(productId.Value),
+                            Convert.ToInt32(Session["userId"]),
+                            CurrentOrderDetailsId);
 
-                        int productId = Convert.ToInt32(_productId.Value);
-                        int cartQuantity = Convert.ToInt32(_cartQuantity.Value);
-                        int productQuantity = Convert.ToInt32(_productQuantity.Value);
-
-                        if (productQuantity > cartQuantity && productQuantity > 2)
-                        {
-                            isTrue = true;
-                        }
-                        else
-                        {
-                            isTrue = false;
-                            pName = productName.Text.ToString();
-                            break;
-                        }
+                        if (!isUpdated) hasError = true;
                     }
                 }
-                if (isTrue)
-                {
-                    Response.Redirect("Payment.aspx");
-                }
-                else
-                {
-                    lblMsg.Visible = true;
-                    lblMsg.Text = "Item <b>'" + pName + "'</b> is out of stock :(";
-                    lblMsg.CssClass = "alert alert-warning";
-                }
             }
 
+            getCartItems();
+            ShowMessage(hasError ? "Some items failed to update" : "Cart updated successfully!",
+                       hasError ? "danger" : "success");
+        }
+
+        private void CheckoutOrder()
+        {
+            if (ValidateStockAvailability())
+            {
+                Response.Redirect($"Payment.aspx?OrderDetailsId={CurrentOrderDetailsId}&TableId={CurrentTableId}");
+            }
+        }
+
+        private bool ValidateStockAvailability()
+        {
+            foreach (RepeaterItem item in rCartItem.Items)
+            {
+                if (item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem)
+                {
+                    HiddenField cartQuantity = item.FindControl("hdnQuantity") as HiddenField;
+                    HiddenField productQuantity = item.FindControl("hdnPrdQuantity") as HiddenField;
+                    Label productName = item.FindControl("lblName") as Label;
+
+                    if (Convert.ToInt32(cartQuantity.Value) > Convert.ToInt32(productQuantity.Value))
+                    {
+                        ShowMessage($"Item '{productName.Text}' is out of stock!", "warning");
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         protected void rCartItem_ItemDataBound(object sender, RepeaterItemEventArgs e)
@@ -274,14 +333,32 @@ namespace Food_Ordering_Project.User
                 Label totalPrice = e.Item.FindControl("lblTotalPrice") as Label;
                 Label productPrice = e.Item.FindControl("lblPrice") as Label;
                 TextBox quantity = e.Item.FindControl("txtQuantity") as TextBox;
+
                 decimal calTotalPrice = Convert.ToDecimal(productPrice.Text) * Convert.ToDecimal(quantity.Text);
                 totalPrice.Text = calTotalPrice.ToString();
                 grandTotal += calTotalPrice;
             }
+
             Session["grndTotalPrice"] = grandTotal;
         }
 
-        // Custom template class to add controls to the repeater's header, item and footer sections.
+        protected void lbBackToTables_Click(object sender, EventArgs e)
+        {
+            Response.Redirect("Table.aspx");
+        }
+
+        protected void lbCompleteOrder_Click(object sender, EventArgs e)
+        {
+            CheckoutOrder();
+        }
+
+        private void ShowMessage(string message, string type)
+        {
+            lblMsg.Visible = true;
+            lblMsg.Text = message;
+            lblMsg.CssClass = $"alert alert-{type}";
+        }
+
         private sealed class CustomTemplate : ITemplate
         {
             private ListItemType ListItemType { get; set; }

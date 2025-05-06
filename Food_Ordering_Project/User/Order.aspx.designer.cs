@@ -15,6 +15,33 @@ namespace Food_Ordering_Project.User
     {
 
         /// <summary>
+        /// Kontrolka lblTableNumber.
+        /// </summary>
+        /// <remarks>
+        /// Pole generowane automatycznie.
+        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblTableNumber;
+
+        /// <summary>
+        /// Kontrolka lbBackToTables.
+        /// </summary>
+        /// <remarks>
+        /// Pole generowane automatycznie.
+        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton lbBackToTables;
+
+        /// <summary>
+        /// Kontrolka lbCompleteOrder.
+        /// </summary>
+        /// <remarks>
+        /// Pole generowane automatycznie.
+        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton lbCompleteOrder;
+
+        /// <summary>
         /// Kontrolka MainPanel.
         /// </summary>
         /// <remarks>

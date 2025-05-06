@@ -237,6 +237,7 @@
     <Content Include="User\Profile.aspx" />
     <Content Include="User\Registration.aspx" />
     <Content Include="User\SliderUserControl.ascx" />
+    <Content Include="User\Table.aspx" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -377,6 +378,13 @@
     </Compile>
     <Compile Include="User\SliderUserControl.ascx.designer.cs">
       <DependentUpon>SliderUserControl.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="User\Table.aspx.cs">
+      <DependentUpon>Table.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="User\Table.aspx.designer.cs">
+      <DependentUpon>Table.aspx</DependentUpon>
     </Compile>
     <Compile Include="User\User.Master.cs">
       <DependentUpon>User.Master</DependentUpon>

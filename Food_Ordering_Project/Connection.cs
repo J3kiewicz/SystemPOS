@@ -53,15 +53,21 @@ namespace Food_Ordering_Project
             return url1;
         }
 
-        public bool updateCartQuantity(int quantity, int productId, int userId)
+        public bool updateCartQuantity(int quantity, int productId, int userId, int orderDetailsId = 0)
         {
             bool isUpdated = false;
-            con = new SqlConnection(Connection.GetConnectionString());
-            cmd = new SqlCommand("Cart_Crud", con);
+            SqlConnection con = new SqlConnection(Connection.GetConnectionString());
+            SqlCommand cmd = new SqlCommand("Cart_Crud", con);
             cmd.Parameters.AddWithValue("@Action", "UPDATE");
             cmd.Parameters.AddWithValue("@ProductId", productId);
             cmd.Parameters.AddWithValue("@Quantity", quantity);
             cmd.Parameters.AddWithValue("@UserId", userId);
+
+            if (orderDetailsId > 0)
+            {
+                cmd.Parameters.AddWithValue("@OrderDetailsId", orderDetailsId);
+            }
+
             cmd.CommandType = CommandType.StoredProcedure;
             try
             {
@@ -80,7 +86,6 @@ namespace Food_Ordering_Project
             }
             return isUpdated;
         }
-
         public int cartCount(int userId)
         {
             con = new SqlConnection(Connection.GetConnectionString());
