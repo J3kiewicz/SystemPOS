@@ -6,29 +6,49 @@
         .table-info {
             background-color: #ffbe33; 
             color: white; 
-            padding: 10px; 
+            padding: 15px; 
             text-align: center; 
             margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .order-actions {
+            margin-top: 10px;
+        }
+        .btn-change-table {
+            background-color: #6c757d;
+            color: white;
+            margin-right: 10px;
+        }
+        .btn-complete-order {
+            background-color: #28a745;
+            color: white;
         }
     </style>
     <script>
-        /*For disappearing alert message*/
         window.onload = function () {
-            var seconds = 5;
             setTimeout(function () {
-                document.getElementById("<%=lblMsg.ClientID %>").style.display = "none";
-            }, seconds * 1000);
+                var msg = document.getElementById("<%=lblMsg.ClientID %>");
+                if (msg) msg.style.display = "none";
+            }, 5000);
         };
     </script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="table-info">
-        <h3>Stolik: <asp:Label ID="lblTableNumber" runat="server" Text=""></asp:Label></h3>
-        <asp:LinkButton ID="lbBackToTables" runat="server" OnClick="lbBackToTables_Click" 
-            CssClass="btn btn-sm btn-light">Zmień stolik</asp:LinkButton>
-        <asp:LinkButton ID="lbCompleteOrder" runat="server" OnClick="lbCompleteOrder_Click" 
-            CssClass="btn btn-sm btn-success ml-2">Zakończ zamówienie</asp:LinkButton>
+        <h3>
+            <asp:Label ID="lblTableNumber" runat="server" Text="Nie wybrano stolika"></asp:Label>
+        </h3>
+        <div class="order-actions">
+            <asp:LinkButton ID="lbBackToTables" runat="server" OnClick="lbBackToTables_Click" 
+                CssClass="btn btn-sm btn-change-table">
+                <i class="fas fa-arrow-left"></i> Zmień stolik
+            </asp:LinkButton>
+            <asp:LinkButton ID="lbCompleteOrder" runat="server" OnClick="lbCompleteOrder_Click" 
+                CssClass="btn btn-sm btn-complete-order">
+                <i class="fas fa-check"></i> Zakończ zamówienie
+            </asp:LinkButton>
+        </div>
     </div>
 
     <div style="width:100%;">

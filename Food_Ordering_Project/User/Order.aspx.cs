@@ -13,42 +13,66 @@ namespace Food_Ordering_Project.User
         SqlDataAdapter sda;
         DataTable dt;
         decimal grandTotal = 0;
+        private int CurrentTableId
+        {
+            get => ViewState["CurrentTableId"] != null ? (int)ViewState["CurrentTableId"] : 0;
+            set => ViewState["CurrentTableId"] = value;
+        }
 
-        private int CurrentTableId { get; set; }
-        private int CurrentOrderDetailsId { get; set; }
+        private int CurrentOrderDetailsId
+        {
+            get => ViewState["CurrentOrderDetailsId"] != null ? (int)ViewState["CurrentOrderDetailsId"] : 0;
+            set => ViewState["CurrentOrderDetailsId"] = value;
+        }
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Session["userId"] == null)
+            {
+                Response.Redirect("Login.aspx");
+            }
+
+            InitializeOrderData(); // Wywołuj zawsze, nie tylko przy !IsPostBack
+
             if (!IsPostBack)
             {
-                if (Session["userId"] == null)
-                {
-                    Response.Redirect("Login.aspx");
-                }
-                else
-                {
-                    InitializeOrderData();
-                    LoadPageData();
-                }
+                LoadPageData();
             }
         }
-
         private void InitializeOrderData()
         {
             if (!string.IsNullOrEmpty(Request.QueryString["TableId"]))
             {
                 CurrentTableId = Convert.ToInt32(Request.QueryString["TableId"]);
-                lblTableNumber.Text = CurrentTableId.ToString();
-            }
+                lblTableNumber.Text = $"Stolik nr {CurrentTableId}";
 
-            if (!string.IsNullOrEmpty(Request.QueryString["OrderDetailsId"]))
-            {
-                CurrentOrderDetailsId = Convert.ToInt32(Request.QueryString["OrderDetailsId"]);
-            }
+                if (!string.IsNullOrEmpty(Request.QueryString["OrderDetailsId"]))
+                {
+                    CurrentOrderDetailsId = Convert.ToInt32(Request.QueryString["OrderDetailsId"]);
+                }
+                else
+                {
+                    // Jeśli OrderDetailsId nie było w URL, znajdź istniejące zamówienie
+                    using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+                    {
+                        con.Open();
+                        SqlCommand cmd = new SqlCommand(
+                            @"SELECT TOP 1 OrderDetailsId 
+                      FROM Orders 
+                      WHERE TableId = @TableId 
+                        AND Status = 'InProgress' 
+                        AND UserId = @UserId",
+                            con);
+                        cmd.Parameters.AddWithValue("@TableId", CurrentTableId);
+                        cmd.Parameters.AddWithValue("@UserId", Convert.ToInt32(Session["userId"]));
 
-            if (CurrentTableId == 0 || CurrentOrderDetailsId == 0)
-            {
-                Response.Redirect("Table.aspx");
+                        object result = cmd.ExecuteScalar();
+                        CurrentOrderDetailsId = result != null ? Convert.ToInt32(result) : 0;
+                    }
+                }
+
+                // Debug info
+                System.Diagnostics.Debug.WriteLine($"Initialized - TableId: {CurrentTableId}, OrderDetailsId: {CurrentOrderDetailsId}");
             }
         }
 
@@ -95,9 +119,21 @@ namespace Food_Ordering_Project.User
         }
         protected void AddToCart(int productId)
         {
-            if (Session["userId"] == null)
+            // Pobierz aktualne wartości z sesji lub parametrów URL
+            CurrentTableId = Request.QueryString["TableId"] != null
+                ? Convert.ToInt32(Request.QueryString["TableId"])
+                : 0;
+
+            CurrentOrderDetailsId = Request.QueryString["OrderDetailsId"] != null
+                ? Convert.ToInt32(Request.QueryString["OrderDetailsId"])
+                : 0;
+
+            // Debugowanie - sprawdź wartości
+            System.Diagnostics.Debug.WriteLine($"TableId: {CurrentTableId}, OrderDetailsId: {CurrentOrderDetailsId}");
+
+            if (CurrentTableId <= 0 || CurrentOrderDetailsId <= 0)
             {
-                Response.Redirect("Login.aspx");
+                ShowMessage("Proszę najpierw wybrać stolik", "danger");
                 return;
             }
 
@@ -106,24 +142,6 @@ namespace Food_Ordering_Project.User
                 using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
                 {
                     con.Open();
-
-                    // Upewnij się, że TableId jest prawidłowe
-                    int tableId = CurrentTableId;
-                    if (tableId <= 0)
-                    {
-                        // Jeśli nie wybrano stolika, znajdź pierwszy aktywny
-                        SqlCommand getTableCmd = new SqlCommand(
-                            "SELECT TOP 1 TableId FROM Tables WHERE IsActive = 1 ORDER BY TableId",
-                            con);
-                        object result = getTableCmd.ExecuteScalar();
-                        if (result == null)
-                        {
-                            ShowMessage("No active tables available", "danger");
-                            return;
-                        }
-                        tableId = Convert.ToInt32(result);
-                    }
-
                     SqlCommand cmd = new SqlCommand("Cart_Crud", con);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Action", "INSERT");
@@ -131,23 +149,26 @@ namespace Food_Ordering_Project.User
                     cmd.Parameters.AddWithValue("@Quantity", 1);
                     cmd.Parameters.AddWithValue("@UserId", Convert.ToInt32(Session["userId"]));
                     cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
-                    cmd.Parameters.AddWithValue("@TableId", tableId); // Przekaż TableId
+                    cmd.Parameters.AddWithValue("@TableId", CurrentTableId); // Dodane
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            CurrentOrderDetailsId = Convert.ToInt32(reader["OrderDetailsId"]);
+                            // Aktualizuj OrderDetailsId jeśli procedura zwróciła nową wartość
+                            if (reader["OrderDetailsId"] != DBNull.Value)
+                            {
+                                CurrentOrderDetailsId = Convert.ToInt32(reader["OrderDetailsId"]);
+                            }
+                            ShowMessage("Produkt dodany do koszyka", "success");
                         }
                     }
-
-                    ShowMessage("Product added to cart", "success");
                     getCartItems();
                 }
             }
             catch (Exception ex)
             {
-                ShowMessage("Error: " + ex.Message, "danger");
+                ShowMessage($"Błąd: {ex.Message}", "danger");
             }
         }
 
@@ -266,7 +287,17 @@ namespace Food_Ordering_Project.User
                 con.Close();
             }
         }
+        //private void UpdateUI()
+        //{
+        //    bool hasTable = CurrentTableId > 0;
+        //    lblTableNumber.Text = hasTable ? $"Stolik nr {CurrentTableId}" : "Nie wybrano stolika";
+        //    pnlOrderActions.Visible = hasTable;
 
+        //    if (hasTable)
+        //    {
+        //        getCartItems();
+        //    }
+        //}
         private void UpdateCart()
         {
             bool hasError = false;

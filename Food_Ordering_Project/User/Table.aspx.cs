@@ -30,15 +30,12 @@ namespace Food_Ordering_Project.User
 
         private void LoadTables()
         {
-            // Tworzymy DataTable z 15 stolikami
+            // Pobieramy rzeczywiste stoliki z bazy zamiast tworzyć sztuczne
+            con = new SqlConnection(Connection.GetConnectionString());
+            cmd = new SqlCommand("SELECT TableId, TableName FROM Tables WHERE IsActive = 1", con);
+            sda = new SqlDataAdapter(cmd);
             dt = new DataTable();
-            dt.Columns.Add("TableId", typeof(int));
-
-            // Dodajemy 15 stolików
-            for (int i = 1; i <= 15; i++)
-            {
-                dt.Rows.Add(i);
-            }
+            sda.Fill(dt);
 
             rTables.DataSource = dt;
             rTables.DataBind();
@@ -46,71 +43,59 @@ namespace Food_Ordering_Project.User
 
         public string GetTableStatus(int tableId)
         {
-            // Sprawdzamy czy stolik ma aktywne zamówienia
             con = new SqlConnection(Connection.GetConnectionString());
             cmd = new SqlCommand("Invoice", con);
             cmd.Parameters.AddWithValue("@Action", "ORDERSBYTABLE");
             cmd.Parameters.AddWithValue("@TableId", tableId);
             cmd.CommandType = CommandType.StoredProcedure;
-            sda = new SqlDataAdapter(cmd);
-            DataTable dtOrders = new DataTable();
-            sda.Fill(dtOrders);
 
-            return dtOrders.Rows.Count > 0 ? "Zajęty" : "Wolny";
+            try
+            {
+                con.Open();
+                var result = cmd.ExecuteScalar();
+                return result != null ? "Zajęty" : "Wolny";
+            }
+            finally
+            {
+                con.Close();
+            }
         }
+        private int _currentTableId = 0;
+        private int _currentOrderId = 0;
 
+        // Zmodyfikuj rTables_ItemCommand
         protected void rTables_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             if (e.CommandName == "SelectTable")
             {
-                int tableId = Convert.ToInt32(e.CommandArgument);
+                _currentTableId = Convert.ToInt32(e.CommandArgument);
+                int userId = Convert.ToInt32(Session["userId"]);
 
-                // Sprawdzamy czy istnieje już zamówienie dla tego stolika
-                con = new SqlConnection(Connection.GetConnectionString());
-                cmd = new SqlCommand("Invoice", con);
-                cmd.Parameters.AddWithValue("@Action", "ORDERSBYTABLE");
-                cmd.Parameters.AddWithValue("@TableId", tableId);
-                cmd.CommandType = CommandType.StoredProcedure;
-                sda = new SqlDataAdapter(cmd);
-                DataTable dtOrders = new DataTable();
-                sda.Fill(dtOrders);
-
-                int orderDetailsId = 0;
-
-                if (dtOrders.Rows.Count > 0)
+                using (con = new SqlConnection(Connection.GetConnectionString()))
                 {
-                    // Jeśli istnieje zamówienie, używamy jego ID
-                    orderDetailsId = Convert.ToInt32(dtOrders.Rows[0]["OrderDetailsId"]);
-                }
-                else
-                {
-                    // Jeśli nie ma zamówienia, tworzymy nowe
-                    cmd = new SqlCommand("Cart_Crud", con);
-                    cmd.Parameters.AddWithValue("@Action", "INSERT");
-                    cmd.Parameters.AddWithValue("@TableId", tableId);
-                    cmd.Parameters.AddWithValue("@ProductId", DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Quantity", DBNull.Value);
-                    cmd.Parameters.AddWithValue("@UserId", Session["userId"]);
-                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd = new SqlCommand(
+                        @"IF EXISTS (SELECT 1 FROM Orders WHERE TableId = @TableId AND Status = 'InProgress')
+                  BEGIN
+                      SELECT OrderDetailsId FROM Orders WHERE TableId = @TableId AND Status = 'InProgress'
+                  END
+                  ELSE
+                  BEGIN
+                      INSERT INTO Orders (TableId, Status, OrderDate, UserId)
+                      VALUES (@TableId, 'InProgress', GETDATE(), @UserId)
+                      SELECT SCOPE_IDENTITY()
+                  END", con);
 
-                    try
-                    {
-                        con.Open();
-                        SqlDataReader dr = cmd.ExecuteReader();
-                        if (dr.Read())
-                        {
-                            orderDetailsId = Convert.ToInt32(dr["OrderDetailsId"]);
-                        }
-                        dr.Close();
-                    }
-                    finally
-                    {
-                        con.Close();
-                    }
+                    cmd.Parameters.AddWithValue("@TableId", _currentTableId);
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+
+                    con.Open();
+                    _currentOrderId = Convert.ToInt32(cmd.ExecuteScalar());
+                    con.Close();
                 }
 
-                // Przekierowujemy do Order.aspx z parametrami
-                Response.Redirect($"Order.aspx?TableId={tableId}&OrderDetailsId={orderDetailsId}");
+                Session["SelectedTableId"] = _currentTableId;
+                Session["SelectedOrderId"] = _currentOrderId;
+                Response.Redirect($"Order.aspx?TableId={_currentTableId}&OrderDetailsId={_currentOrderId}");
             }
         }
     }
