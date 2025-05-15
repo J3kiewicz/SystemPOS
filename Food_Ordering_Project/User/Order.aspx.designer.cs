@@ -33,6 +33,15 @@ namespace Food_Ordering_Project.User
         protected global::System.Web.UI.WebControls.LinkButton lbBackToTables;
 
         /// <summary>
+        /// Kontrolka lbSplitBill.
+        /// </summary>
+        /// <remarks>
+        /// Pole generowane automatycznie.
+        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton lbSplitBill;
+
+        /// <summary>
         /// Kontrolka lbCompleteOrder.
         /// </summary>
         /// <remarks>
@@ -103,5 +112,41 @@ namespace Food_Ordering_Project.User
         /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Repeater rCartItem;
+
+        /// <summary>
+        /// Kontrolka rProductsToSplit.
+        /// </summary>
+        /// <remarks>
+        /// Pole generowane automatycznie.
+        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rProductsToSplit;
+
+        /// <summary>
+        /// Kontrolka ddlTargetTable.
+        /// </summary>
+        /// <remarks>
+        /// Pole generowane automatycznie.
+        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlTargetTable;
+
+        /// <summary>
+        /// Kontrolka txtNewTableNumber.
+        /// </summary>
+        /// <remarks>
+        /// Pole generowane automatycznie.
+        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtNewTableNumber;
+
+        /// <summary>
+        /// Kontrolka btnConfirmSplit.
+        /// </summary>
+        /// <remarks>
+        /// Pole generowane automatycznie.
+        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnConfirmSplit;
     }
 }

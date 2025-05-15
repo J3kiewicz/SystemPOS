@@ -44,16 +44,46 @@ namespace Food_Ordering_Project.User
         public string GetTableStatus(int tableId)
         {
             con = new SqlConnection(Connection.GetConnectionString());
-            cmd = new SqlCommand("Invoice", con);
-            cmd.Parameters.AddWithValue("@Action", "ORDERSBYTABLE");
+            cmd = new SqlCommand(@"
+        SELECT 
+            t.TableId,
+            t.TableName,
+            SUM(p.Price * c.Quantity) AS TotalAmount,
+            COUNT(c.CartId) AS ItemCount
+        FROM Tables t
+        LEFT JOIN Orders o ON t.TableId = o.TableId AND o.Status = 'InProgress'
+        LEFT JOIN Carts c ON o.OrderDetailsId = c.OrderDetailsId
+        LEFT JOIN Products p ON c.ProductId = p.ProductId
+        WHERE t.TableId = @TableId
+        GROUP BY t.TableId, t.TableName", con);
             cmd.Parameters.AddWithValue("@TableId", tableId);
-            cmd.CommandType = CommandType.StoredProcedure;
 
             try
             {
                 con.Open();
-                var result = cmd.ExecuteScalar();
-                return result != null ? "Zajęty" : "Wolny";
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        string busyClass = reader.IsDBNull(2) ? "" : "busy";
+                        string statusHtml = $"<div class='table-selector-item {busyClass}'>" +
+                                          $"<div class='table-selector-name'>Stolik {reader["TableId"]}</div>";
+
+                        if (!reader.IsDBNull(2)) // Jeśli TotalAmount nie jest NULL (czyli jest rachunek)
+                        {
+                            statusHtml += $"<div class='table-selector-info table-selector-status-busy'>Rachunek: {Convert.ToDecimal(reader["TotalAmount"]):C}</div>" +
+                                         $"<div class='table-selector-info'>{reader["ItemCount"]} pozycji</div>";
+                        }
+                        else
+                        {
+                            statusHtml += "<div class='table-selector-info table-selector-status-free'>Wolny</div>";
+                        }
+
+                        statusHtml += "</div>";
+                        return statusHtml;
+                    }
+                    return "<div class='table-selector-item'><div class='table-selector-name'>Błąd</div></div>";
+                }
             }
             finally
             {

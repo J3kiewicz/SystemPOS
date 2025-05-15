@@ -1,12 +1,13 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/User/User.Master" AutoEventWireup="true" CodeBehind="Table.aspx.cs" Inherits="Food_Ordering_Project.User.Table" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <style>
-        .table-container {
+ <style>
+ .table-container {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 20px;
             padding: 20px;
+            background: #e69c00;
         }
         .table-item {
             background-color: #ffbe33;
@@ -48,8 +49,7 @@
         <asp:Repeater ID="rTables" runat="server" OnItemCommand="rTables_ItemCommand">
             <ItemTemplate>
                 <asp:LinkButton ID="lbTable" runat="server" CssClass="table-item" CommandName="SelectTable" CommandArgument='<%# Eval("TableId") %>'>
-                    <div class="table-number">Stolik <%# Eval("TableId") %></div>
-                    <div class="table-status"><%# GetTableStatus(Convert.ToInt32(Eval("TableId"))) %></div>
+                    <%# GetTableStatus(Convert.ToInt32(Eval("TableId"))) %>
                 </asp:LinkButton>
             </ItemTemplate>
         </asp:Repeater>

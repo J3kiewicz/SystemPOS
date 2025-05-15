@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -13,7 +15,8 @@ namespace Food_Ordering_Project.User
         SqlDataAdapter sda;
         DataTable dt;
         decimal grandTotal = 0;
-        private int CurrentTableId
+
+        public int CurrentTableId
         {
             get => ViewState["CurrentTableId"] != null ? (int)ViewState["CurrentTableId"] : 0;
             set => ViewState["CurrentTableId"] = value;
@@ -32,13 +35,14 @@ namespace Food_Ordering_Project.User
                 Response.Redirect("Login.aspx");
             }
 
-            InitializeOrderData(); // Wywołuj zawsze, nie tylko przy !IsPostBack
+            InitializeOrderData();
 
             if (!IsPostBack)
             {
                 LoadPageData();
             }
         }
+
         private void InitializeOrderData()
         {
             if (!string.IsNullOrEmpty(Request.QueryString["TableId"]))
@@ -52,7 +56,6 @@ namespace Food_Ordering_Project.User
                 }
                 else
                 {
-                    // Jeśli OrderDetailsId nie było w URL, znajdź istniejące zamówienie
                     using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
                     {
                         con.Open();
@@ -71,7 +74,6 @@ namespace Food_Ordering_Project.User
                     }
                 }
 
-                // Debug info
                 System.Diagnostics.Debug.WriteLine($"Initialized - TableId: {CurrentTableId}, OrderDetailsId: {CurrentOrderDetailsId}");
             }
         }
@@ -114,12 +116,14 @@ namespace Food_Ordering_Project.User
         {
             if (e.CommandName == "addToCart")
             {
-                AddToCart(Convert.ToInt32(e.CommandArgument));
+                TextBox txtComment = (TextBox)e.Item.FindControl("txtProductComment");
+                string comment = txtComment != null ? txtComment.Text.Trim() : null;
+                AddToCart(Convert.ToInt32(e.CommandArgument), comment);
             }
         }
-        protected void AddToCart(int productId)
+
+        protected void AddToCart(int productId, string comment = null)
         {
-            // Pobierz aktualne wartości z sesji lub parametrów URL
             CurrentTableId = Request.QueryString["TableId"] != null
                 ? Convert.ToInt32(Request.QueryString["TableId"])
                 : 0;
@@ -127,9 +131,6 @@ namespace Food_Ordering_Project.User
             CurrentOrderDetailsId = Request.QueryString["OrderDetailsId"] != null
                 ? Convert.ToInt32(Request.QueryString["OrderDetailsId"])
                 : 0;
-
-            // Debugowanie - sprawdź wartości
-            System.Diagnostics.Debug.WriteLine($"TableId: {CurrentTableId}, OrderDetailsId: {CurrentOrderDetailsId}");
 
             if (CurrentTableId <= 0 || CurrentOrderDetailsId <= 0)
             {
@@ -149,13 +150,13 @@ namespace Food_Ordering_Project.User
                     cmd.Parameters.AddWithValue("@Quantity", 1);
                     cmd.Parameters.AddWithValue("@UserId", Convert.ToInt32(Session["userId"]));
                     cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
-                    cmd.Parameters.AddWithValue("@TableId", CurrentTableId); // Dodane
+                    cmd.Parameters.AddWithValue("@TableId", CurrentTableId);
+                    cmd.Parameters.AddWithValue("@Comment", !string.IsNullOrEmpty(comment) ? (object)comment : DBNull.Value);
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            // Aktualizuj OrderDetailsId jeśli procedura zwróciła nową wartość
                             if (reader["OrderDetailsId"] != DBNull.Value)
                             {
                                 CurrentOrderDetailsId = Convert.ToInt32(reader["OrderDetailsId"]);
@@ -169,58 +170,6 @@ namespace Food_Ordering_Project.User
             catch (Exception ex)
             {
                 ShowMessage($"Błąd: {ex.Message}", "danger");
-            }
-        }
-
-        private int GetCartItemQuantity(int productId)
-        {
-            con = new SqlConnection(Connection.GetConnectionString());
-            cmd = new SqlCommand("Cart_Crud", con);
-            cmd.Parameters.AddWithValue("@Action", "GETBYID");
-            cmd.Parameters.AddWithValue("@ProductId", productId);
-            cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
-            cmd.CommandType = CommandType.StoredProcedure;
-            sda = new SqlDataAdapter(cmd);
-            dt = new DataTable();
-            sda.Fill(dt);
-            return dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["Quantity"]) : 0;
-        }
-
-        private void InsertNewCartItem(int productId)
-        {
-            con = new SqlConnection(Connection.GetConnectionString());
-            cmd = new SqlCommand("Cart_Crud", con);
-            cmd.Parameters.AddWithValue("@Action", "INSERT");
-            cmd.Parameters.AddWithValue("@ProductId", productId);
-            cmd.Parameters.AddWithValue("@Quantity", 1);
-            cmd.Parameters.AddWithValue("@UserId", Session["userId"]);
-            cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            try
-            {
-                con.Open();
-                cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                ShowMessage("Error - " + ex.Message, "danger");
-            }
-            finally
-            {
-                con.Close();
-            }
-        }
-
-        private void UpdateCartItemQuantity(int productId, int newQuantity)
-        {
-            Utils utils = new Utils();
-            bool isUpdated = utils.updateCartQuantity(newQuantity, productId,
-                Convert.ToInt32(Session["userId"]), CurrentOrderDetailsId);
-
-            if (!isUpdated)
-            {
-                ShowMessage("Failed to update item quantity", "danger");
             }
         }
 
@@ -259,73 +208,132 @@ namespace Food_Ordering_Project.User
                 case "checkout":
                     CheckoutOrder();
                     break;
+                case "increase":
+                    UpdateQuantity(Convert.ToInt32(e.CommandArgument), 1);
+                    break;
+                case "decrease":
+                    UpdateQuantity(Convert.ToInt32(e.CommandArgument), -1);
+                    break;
             }
         }
+
+        private void UpdateQuantity(int productId, int change)
+        {
+            int currentQuantity = GetCartItemQuantity(productId);
+            int newQuantity = currentQuantity + change;
+
+            if (newQuantity < 1)
+            {
+                RemoveCartItem(productId);
+                return;
+            }
+
+            UpdateCartItemQuantity(productId, newQuantity);
+            getCartItems();
+        }
+
+        private int GetCartItemQuantity(int productId)
+        {
+            using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+            {
+                cmd = new SqlCommand("Cart_Crud", con);
+                cmd.Parameters.AddWithValue("@Action", "GETBYID");
+                cmd.Parameters.AddWithValue("@ProductId", productId);
+                cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+                cmd.CommandType = CommandType.StoredProcedure;
+                sda = new SqlDataAdapter(cmd);
+                dt = new DataTable();
+                sda.Fill(dt);
+                return dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["Quantity"]) : 0;
+            }
+        }
+
+        private void UpdateCartItemQuantity(int productId, int newQuantity)
+        {
+            using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+            {
+                try
+                {
+                    con.Open();
+                    cmd = new SqlCommand("Cart_Crud", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Action", "UPDATEQUANTITY");
+                    cmd.Parameters.AddWithValue("@ProductId", productId);
+                    cmd.Parameters.AddWithValue("@Quantity", newQuantity);
+                    cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage("Error updating quantity: " + ex.Message, "danger");
+                }
+            }
+        }
+
+        
 
         private void RemoveCartItem(int productId)
         {
-            con = new SqlConnection(Connection.GetConnectionString());
-            cmd = new SqlCommand("Cart_Crud", con);
-            cmd.Parameters.AddWithValue("@Action", "DELETE");
-            cmd.Parameters.AddWithValue("@ProductId", productId);
-            cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            try
+            using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
             {
-                con.Open();
-                cmd.ExecuteNonQuery();
-                getCartItems();
-                ShowMessage("Item removed from cart!", "warning");
-            }
-            catch (Exception ex)
-            {
-                ShowMessage("Error - " + ex.Message, "danger");
-            }
-            finally
-            {
-                con.Close();
+                try
+                {
+                    con.Open();
+                    cmd = new SqlCommand("Cart_Crud", con);
+                    cmd.Parameters.AddWithValue("@Action", "DELETE");
+                    cmd.Parameters.AddWithValue("@ProductId", productId);
+                    cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.ExecuteNonQuery();
+                    getCartItems();
+                    ShowMessage("Produkt usunięty z koszyka!", "warning");
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage("Błąd - " + ex.Message, "danger");
+                }
             }
         }
-        //private void UpdateUI()
-        //{
-        //    bool hasTable = CurrentTableId > 0;
-        //    lblTableNumber.Text = hasTable ? $"Stolik nr {CurrentTableId}" : "Nie wybrano stolika";
-        //    pnlOrderActions.Visible = hasTable;
 
-        //    if (hasTable)
-        //    {
-        //        getCartItems();
-        //    }
-        //}
         private void UpdateCart()
         {
             bool hasError = false;
 
-            for (int item = 0; item < rCartItem.Items.Count; item++)
+            foreach (RepeaterItem item in rCartItem.Items)
             {
-                if (rCartItem.Items[item].ItemType == ListItemType.Item ||
-                    rCartItem.Items[item].ItemType == ListItemType.AlternatingItem)
+                if (item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem)
                 {
-                    TextBox quantity = rCartItem.Items[item].FindControl("txtQuantity") as TextBox;
-                    HiddenField productId = rCartItem.Items[item].FindControl("hdnProductId") as HiddenField;
+                    TextBox quantity = item.FindControl("txtQuantity") as TextBox;
+                    TextBox comment = item.FindControl("txtComment") as TextBox;
+                    HiddenField productId = item.FindControl("hdnProductId") as HiddenField;
 
-                    if (int.TryParse(quantity.Text, out int newQuantity) && productId != null)
+                    if (productId != null && int.TryParse(quantity?.Text, out int newQuantity))
                     {
-                        Utils utils = new Utils();
-                        bool isUpdated = utils.updateCartQuantity(
-                            newQuantity,
-                            Convert.ToInt32(productId.Value),
-                            Convert.ToInt32(Session["userId"]),
-                            CurrentOrderDetailsId);
-
-                        if (!isUpdated) hasError = true;
+                        try
+                        {
+                            using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+                            {
+                                con.Open();
+                                cmd = new SqlCommand("Cart_Crud", con);
+                                cmd.CommandType = CommandType.StoredProcedure;
+                                cmd.Parameters.AddWithValue("@Action", "UPDATE");
+                                cmd.Parameters.AddWithValue("@ProductId", Convert.ToInt32(productId.Value));
+                                cmd.Parameters.AddWithValue("@Quantity", newQuantity);
+                                cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+                                cmd.Parameters.AddWithValue("@Comment", !string.IsNullOrEmpty(comment?.Text) ? (object)comment.Text : DBNull.Value);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        catch
+                        {
+                            hasError = true;
+                        }
                     }
                 }
             }
 
             getCartItems();
-            ShowMessage(hasError ? "Some items failed to update" : "Cart updated successfully!",
+            ShowMessage(hasError ? "Nie udało się zaktualizować niektórych produktów" : "Koszyk zaktualizowany pomyślnie!",
                        hasError ? "danger" : "success");
         }
 
@@ -333,6 +341,18 @@ namespace Food_Ordering_Project.User
         {
             if (ValidateStockAvailability())
             {
+                // Zapisujemy wszystkie zmiany przed przejściem do płatności
+                UpdateCart();
+
+                // Oznaczamy zamówienie jako zakończone
+                using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+                {
+                    con.Open();
+                    cmd = new SqlCommand("UPDATE Orders SET Status = 'Completed' WHERE OrderDetailsId = @OrderDetailsId", con);
+                    cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+                    cmd.ExecuteNonQuery();
+                }
+
                 Response.Redirect($"Payment.aspx?OrderDetailsId={CurrentOrderDetailsId}&TableId={CurrentTableId}");
             }
         }
@@ -349,7 +369,7 @@ namespace Food_Ordering_Project.User
 
                     if (Convert.ToInt32(cartQuantity.Value) > Convert.ToInt32(productQuantity.Value))
                     {
-                        ShowMessage($"Item '{productName.Text}' is out of stock!", "warning");
+                        ShowMessage($"Produkt '{productName.Text}' jest niedostępny w żądanej ilości!", "warning");
                         return false;
                     }
                 }
@@ -375,6 +395,8 @@ namespace Food_Ordering_Project.User
 
         protected void lbBackToTables_Click(object sender, EventArgs e)
         {
+            // Zapisujemy zmiany przed powrotem do listy stolików
+            UpdateCart();
             Response.Redirect("Table.aspx");
         }
 
@@ -403,10 +425,232 @@ namespace Food_Ordering_Project.User
             {
                 if (ListItemType == ListItemType.Footer)
                 {
-                    var footer = new LiteralControl("<tr><td colspan='5'><b>Your Cart is empty.</b><a href='Menu.aspx' class='badge badge-info ml-2'>Continue Shopping</a></td></tr></tbody></table>");
-                    container.Controls.Add(footer);
+                   
                 }
             }
         }
+        protected void lbSplitBill_Click(object sender, EventArgs e)
+        {
+            if (CurrentOrderDetailsId <= 0)
+            {
+                ShowMessage("Proszę najpierw utworzyć zamówienie", "warning");
+                return;
+            }
+
+            LoadProductsForSplitting();
+            LoadAvailableTables();
+
+            ScriptManager.RegisterStartupScript(this, this.GetType(), "showSplitModal",
+                "$(function() { $('#splitBillModal').modal('show'); });", true);
+        }
+
+        protected void rProductsToSplit_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            {
+                TextBox txtQuantity = (TextBox)e.Item.FindControl("txtSplitQuantity");
+                HiddenField hdnMaxQuantity = (HiddenField)e.Item.FindControl("hdnMaxQuantity");
+
+                if (txtQuantity != null && hdnMaxQuantity != null)
+                {
+                    txtQuantity.Attributes["max"] = hdnMaxQuantity.Value;
+                }
+            }
+        }
+
+        private void LoadProductsForSplitting()
+        {
+            using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            SELECT c.CartId, p.Name, c.Quantity, c.ProductId
+            FROM Carts c
+            INNER JOIN Products p ON c.ProductId = p.ProductId
+            WHERE c.OrderDetailsId = @OrderDetailsId", con);
+                cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
+
+                SqlDataAdapter sda = new SqlDataAdapter(cmd);
+                DataTable dt = new DataTable();
+                sda.Fill(dt);
+
+                rProductsToSplit.DataSource = dt;
+                rProductsToSplit.DataBind();
+            }
+        }
+
+
+        private void LoadAvailableTables()
+        {
+            using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            SELECT t.TableId 
+            FROM Tables t
+            LEFT JOIN Orders o ON t.TableId = o.TableId AND o.Status = 'InProgress'
+            WHERE o.OrderDetailsId IS NULL OR o.OrderDetailsId = @CurrentOrderId
+            ORDER BY t.TableId", con);
+                cmd.Parameters.AddWithValue("@CurrentOrderId", CurrentOrderDetailsId);
+
+                SqlDataAdapter sda = new SqlDataAdapter(cmd);
+                DataTable dt = new DataTable();
+                sda.Fill(dt);
+
+                ddlTargetTable.DataSource = dt;
+                ddlTargetTable.DataBind();
+
+                // Dodaj opcję dla nowego stolika
+                ddlTargetTable.Items.Insert(0, new ListItem("-- Wybierz stolik --", "0"));
+            }
+        }
+
+        protected void btnConfirmSplit_Click(object sender, EventArgs e)
+        {
+            int targetTableId;
+
+            // Sprawdź czy wybrano istniejący stolik czy nowy
+            if (ddlTargetTable.SelectedValue != "0" && !string.IsNullOrEmpty(ddlTargetTable.SelectedValue))
+            {
+                targetTableId = Convert.ToInt32(ddlTargetTable.SelectedValue);
+            }
+            else if (!string.IsNullOrEmpty(txtNewTableNumber.Text))
+            {
+                targetTableId = Convert.ToInt32(txtNewTableNumber.Text);
+            }
+            else
+            {
+                ShowMessage("Proszę wybrać stolik docelowy lub podać nowy numer", "danger");
+                return;
+            }
+
+            // Utwórz nowe zamówienie
+            int newOrderId = CreateNewOrder(targetTableId);
+
+            // Przenieś wybrane produkty
+            MoveProductsToNewOrder(newOrderId);
+
+            // Odśwież stronę
+            Response.Redirect($"Order.aspx?TableId={CurrentTableId}&OrderDetailsId={CurrentOrderDetailsId}");
+        }
+
+        private int CreateNewOrder(int tableId)
+        {
+            using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand(
+                    @"INSERT INTO Orders (TableId, Status, OrderDate, UserId)
+              VALUES (@TableId, 'InProgress', GETDATE(), @UserId);
+              SELECT SCOPE_IDENTITY();", con);
+                cmd.Parameters.AddWithValue("@TableId", tableId);
+                cmd.Parameters.AddWithValue("@UserId", Convert.ToInt32(Session["userId"]));
+
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+
+        private void MoveProductsToNewOrder(int newOrderId)
+        {
+            List<CartItemToMove> itemsToMove = new List<CartItemToMove>();
+
+            // Zbierz informacje o produktach do przeniesienia
+            foreach (RepeaterItem item in rProductsToSplit.Items)
+            {
+                CheckBox cbSelect = (CheckBox)item.FindControl("cbSelectProduct");
+                if (cbSelect != null && cbSelect.Checked)
+                {
+                    TextBox txtQuantity = (TextBox)item.FindControl("txtSplitQuantity");
+                    HiddenField hdnCartId = (HiddenField)item.FindControl("hdnCartId");
+                    HiddenField hdnProductId = (HiddenField)item.FindControl("hdnProductId");
+                    HiddenField hdnMaxQuantity = (HiddenField)item.FindControl("hdnMaxQuantity");
+
+                    int quantityToMove = Convert.ToInt32(txtQuantity.Text);
+                    int maxQuantity = Convert.ToInt32(hdnMaxQuantity.Value);
+
+                    if (quantityToMove <= 0 || quantityToMove > maxQuantity)
+                    {
+                        ShowMessage($"Nieprawidłowa ilość dla produktu", "danger");
+                        return;
+                    }
+
+                    itemsToMove.Add(new CartItemToMove
+                    {
+                        CartId = Convert.ToInt32(hdnCartId.Value),
+                        ProductId = Convert.ToInt32(hdnProductId.Value),
+                        Quantity = quantityToMove,
+                        MaxQuantity = maxQuantity
+                    });
+                }
+            }
+
+            if (itemsToMove.Count == 0)
+            {
+                ShowMessage("Nie wybrano żadnych produktów do przeniesienia", "warning");
+                return;
+            }
+
+            using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+            {
+                con.Open();
+                SqlTransaction transaction = con.BeginTransaction();
+
+                try
+                {
+                    foreach (var item in itemsToMove)
+                    {
+                        // 1. Dodaj produkt do nowego zamówienia
+                        SqlCommand insertCmd = new SqlCommand(
+                            @"INSERT INTO Carts (ProductId, Quantity, UserId, OrderDetailsId)
+                      VALUES (@ProductId, @Quantity, @UserId, @NewOrderId)", con, transaction);
+                        insertCmd.Parameters.AddWithValue("@ProductId", item.ProductId);
+                        insertCmd.Parameters.AddWithValue("@Quantity", item.Quantity);
+                        insertCmd.Parameters.AddWithValue("@UserId", Convert.ToInt32(Session["userId"]));
+                        insertCmd.Parameters.AddWithValue("@NewOrderId", newOrderId);
+                        insertCmd.ExecuteNonQuery();
+
+                        // 2. Aktualizuj ilość w starym zamówieniu
+                        if (item.Quantity == item.MaxQuantity)
+                        {
+                            // Usuń cały produkt jeśli przenosimy wszystko
+                            SqlCommand deleteCmd = new SqlCommand(
+                                @"DELETE FROM Carts 
+                          WHERE CartId = @CartId", con, transaction);
+                            deleteCmd.Parameters.AddWithValue("@CartId", item.CartId);
+                            deleteCmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            // Zmniejsz ilość
+                            SqlCommand updateCmd = new SqlCommand(
+                                @"UPDATE Carts 
+                          SET Quantity = Quantity - @Quantity 
+                          WHERE CartId = @CartId", con, transaction);
+                            updateCmd.Parameters.AddWithValue("@Quantity", item.Quantity);
+                            updateCmd.Parameters.AddWithValue("@CartId", item.CartId);
+                            updateCmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    transaction.Commit();
+                    ShowMessage($"Pomyślnie podzielono rachunek. Nowe zamówienie: {newOrderId}", "success");
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    ShowMessage($"Błąd podczas przenoszenia produktów: {ex.Message}", "danger");
+                }
+            }
+        }
+
+
+        // Klasa pomocnicza do przechowywania informacji o produktach do przeniesienia
+        public class CartItemToMove
+        {
+            public int CartId { get; set; }
+            public int ProductId { get; set; }
+            public int Quantity { get; set; }
+            public int MaxQuantity { get; set; }
+        }
+
     }
 }
