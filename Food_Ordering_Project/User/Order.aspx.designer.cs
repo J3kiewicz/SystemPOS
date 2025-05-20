@@ -132,15 +132,6 @@ namespace Food_Ordering_Project.User
         protected global::System.Web.UI.WebControls.DropDownList ddlTargetTable;
 
         /// <summary>
-        /// Kontrolka txtNewTableNumber.
-        /// </summary>
-        /// <remarks>
-        /// Pole generowane automatycznie.
-        /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtNewTableNumber;
-
-        /// <summary>
         /// Kontrolka btnConfirmSplit.
         /// </summary>
         /// <remarks>

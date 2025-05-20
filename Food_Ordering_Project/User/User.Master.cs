@@ -19,17 +19,17 @@ namespace Food_Ordering_Project.User
             if (!Request.Url.AbsoluteUri.ToString().Contains("Default.aspx"))
             {
                 
-                form1.Attributes.Add("class", "sub_page");
+               form1.Attributes.Add("class", "sub_page");
             }
             else
             {
                 form1.Attributes.Remove("class");
 
-                //Load the control   
-                Control sliderUserControl = (Control)Page.LoadControl("SliderUserControl.ascx");
+            //    //Load the control   
+            //    Control sliderUserControl = (Control)Page.LoadControl("SliderUserControl.ascx");
 
-                // Add the control to the panel  
-                pnlSliderUC.Controls.Add(sliderUserControl);
+            //    // Add the control to the panel  
+            //    pnlSliderUC.Controls.Add(sliderUserControl);
             }
 
             if(Session["userId"] != null)

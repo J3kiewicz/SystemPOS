@@ -37,6 +37,10 @@
             font-size: 14px;
             font-weight: normal;
         }
+     h2 {
+         padding-bottom: 50px;
+         padding-top: 50px;
+     }
     </style>
 </asp:Content>
 

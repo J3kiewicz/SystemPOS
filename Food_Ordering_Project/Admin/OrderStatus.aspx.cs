@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -20,20 +17,36 @@ namespace Food_Ordering_Project.Admin
         {
             if (!IsPostBack)
             {
-                Session["breadCrum"] = "Order Status";
+                Session["breadCrum"] = "Historia zamówień";
                 if (Session["admin"] == null)
                 {
                     Response.Redirect("../User/Login.aspx");
                 }
                 else
                 {
-                    getOrderStatus();
+                    GetAllOrders();
                 }
             }
-            pUpdateOrderStatus.Visible = false;
         }
 
-        private void getOrderStatus()
+        public string GetStatusBadgeClass(string status)
+        {
+            switch (status)
+            {
+                case "Completed":
+                    return "badge badge-success";
+                case "InProgress":
+                    return "badge badge-warning";
+                case "Pending":
+                    return "badge badge-primary";
+                case "Cancelled":
+                    return "badge badge-danger";
+                default:
+                    return "badge badge-secondary";
+            }
+        }
+
+        private void GetAllOrders()
         {
             con = new SqlConnection(Connection.GetConnectionString());
             cmd = new SqlCommand("Invoice", con);
@@ -42,64 +55,42 @@ namespace Food_Ordering_Project.Admin
             sda = new SqlDataAdapter(cmd);
             dt = new DataTable();
             sda.Fill(dt);
+
             rOrderStatus.DataSource = dt;
             rOrderStatus.DataBind();
         }
 
         protected void rOrderStatus_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            lblMsg.Visible = false;
-            if (e.CommandName == "edit")
+            if (e.CommandName == "details")
             {
-                con = new SqlConnection(Connection.GetConnectionString());
-                cmd = new SqlCommand("Invoice", con);
-                cmd.Parameters.AddWithValue("@Action", "STATUSBYID");
-                cmd.Parameters.AddWithValue("@OrderDetailsId", e.CommandArgument);
-                cmd.CommandType = CommandType.StoredProcedure;
-                sda = new SqlDataAdapter(cmd);
-                dt = new DataTable();
-                sda.Fill(dt);
-                ddlOrderStatus.SelectedValue = dt.Rows[0]["Status"].ToString();
-                hdnId.Value = dt.Rows[0]["OrderDetailsId"].ToString();
-                pUpdateOrderStatus.Visible = true;
-                LinkButton btn = e.Item.FindControl("lnkEdit") as LinkButton;
-                btn.CssClass = "badge badge-warning";
+                string script = $"toggleDetails('details_{e.CommandArgument}');";
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "toggleDetails", script, true);
             }
         }
 
-        protected void btnUpdate_Click(object sender, EventArgs e)
+        protected void rOrderStatus_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {
-            int orderDetailsId = Convert.ToInt32(hdnId.Value);
-            con = new SqlConnection(Connection.GetConnectionString());
-            cmd = new SqlCommand("Invoice", con);
-            cmd.Parameters.AddWithValue("@Action", "UPDTSTATUS");
-            cmd.Parameters.AddWithValue("@OrderDetailsId", orderDetailsId);
-            cmd.Parameters.AddWithValue("@Status", ddlOrderStatus.SelectedValue);
-            cmd.CommandType = CommandType.StoredProcedure;
-            try
+            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
             {
-                con.Open();
-                cmd.ExecuteNonQuery();
-                lblMsg.Visible = true;
-                lblMsg.Text = "Order status updated successfully!";
-                lblMsg.CssClass = "alert alert-success";
-                getOrderStatus();
-            }
-            catch (Exception ex)
-            {
-                lblMsg.Visible = true;
-                lblMsg.Text = "Error- " + ex.Message;
-                lblMsg.CssClass = "alert alert-danger";
-            }
-            finally
-            {
-                con.Close();
-            }
-        }
+                int orderDetailsId = Convert.ToInt32(DataBinder.Eval(e.Item.DataItem, "OrderDetailsId"));
+                Repeater rOrderItems = (Repeater)e.Item.FindControl("rOrderItems");
 
-        protected void btnCancel_Click(object sender, EventArgs e)
-        {
-            pUpdateOrderStatus.Visible = false;
+                if (rOrderItems != null)
+                {
+                    con = new SqlConnection(Connection.GetConnectionString());
+                    cmd = new SqlCommand("Invoice", con);
+                    cmd.Parameters.AddWithValue("@Action", "GETORDERITEMS");
+                    cmd.Parameters.AddWithValue("@OrderDetailsId", orderDetailsId);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    sda = new SqlDataAdapter(cmd);
+                    dt = new DataTable();
+                    sda.Fill(dt);
+
+                    rOrderItems.DataSource = dt;
+                    rOrderItems.DataBind();
+                }
+            }
         }
     }
 }

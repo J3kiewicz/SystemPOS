@@ -71,8 +71,8 @@ namespace Food_Ordering_Project.User
 
                         if (!reader.IsDBNull(2)) // Jeśli TotalAmount nie jest NULL (czyli jest rachunek)
                         {
-                            statusHtml += $"<div class='table-selector-info table-selector-status-busy'>Rachunek: {Convert.ToDecimal(reader["TotalAmount"]):C}</div>" +
-                                         $"<div class='table-selector-info'>{reader["ItemCount"]} pozycji</div>";
+                            statusHtml += $"<div class='table-selector-info table-selector-status-busy'>Rachunek: {Convert.ToDecimal(reader["TotalAmount"]):C}</div>";
+                                         
                         }
                         else
                         {
@@ -126,6 +126,43 @@ namespace Food_Ordering_Project.User
                 Session["SelectedTableId"] = _currentTableId;
                 Session["SelectedOrderId"] = _currentOrderId;
                 Response.Redirect($"Order.aspx?TableId={_currentTableId}&OrderDetailsId={_currentOrderId}");
+            }
+        }
+
+        protected void rTables_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            {
+                int tableId = Convert.ToInt32(DataBinder.Eval(e.Item.DataItem, "TableId"));
+                HyperLink hlTable = (HyperLink)e.Item.FindControl("hlTable");
+                Label lblStatus = (Label)e.Item.FindControl("lblStatus");
+
+                // Sprawdź czy stolik ma aktywne zamówienie
+                using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
+                {
+                    SqlCommand cmd = new SqlCommand(
+                        @"SELECT TOP 1 o.Status 
+                  FROM Orders o 
+                  WHERE o.TableId = @TableId 
+                  ORDER BY o.OrderDate DESC", con);
+                    cmd.Parameters.AddWithValue("@TableId", tableId);
+
+                    con.Open();
+                    string status = cmd.ExecuteScalar()?.ToString();
+
+                    if (status == "InProgress")
+                    {
+                        lblStatus.Text = "Zajęty";
+                        lblStatus.CssClass = "badge badge-danger";
+                        hlTable.NavigateUrl = $"Order.aspx?TableId={tableId}";
+                    }
+                    else
+                    {
+                        lblStatus.Text = "Wolny";
+                        lblStatus.CssClass = "badge badge-success";
+                        hlTable.NavigateUrl = $"Order.aspx?TableId={tableId}&NewOrder=1";
+                    }
+                }
             }
         }
     }
