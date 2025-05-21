@@ -187,7 +187,7 @@
                                                 <div class="detail-box">
                                                     <h5><%# Eval("Name") %></h5>
                                                     <div class="options">
-                                                        <h6>₹<%# Eval("Price") %></h6>
+                                                        <h6>zł<%# Eval("Price") %></h6>
                                                         
                                                     </div>
                                                 </div>
@@ -249,7 +249,7 @@
                                     </asp:LinkButton>
         </div>
                                 </td>
-                                        <td>₹<asp:Label ID="lblPrice" runat="server" Text='<%# Eval("Price") %>'></asp:Label>
+                                        <td>zł<asp:Label ID="lblPrice" runat="server" Text='<%# Eval("Price") %>'></asp:Label>
             <!-- DODAJ TUTAJ hdnCartId -->
             <asp:HiddenField ID="hdnCartId" runat="server" Value='<%# Eval("CartId") %>' />
             <asp:HiddenField ID="hdnProductId" runat="server" Value='<%# Eval("ProductId") %>' />
@@ -268,7 +268,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>₹<asp:Label ID="lblTotalPrice" runat="server"></asp:Label></td>
+                                <td>zł<asp:Label ID="lblTotalPrice" runat="server"></asp:Label></td>
                                 <td>
                                     <asp:LinkButton ID="lnkDelete" Text="Usuń" runat="server" CommandName="remove" CommandArgument='<%# Eval("ProductId") %>'
                                         OnClientClick="return confirm('Czy na pewno chcesz usunąć ten produkt z koszyka?');">
@@ -283,7 +283,7 @@
                             <tr>
                                 <td colspan="3"></td>
                                 <td class="pl-lg-5"><b>Suma końcowa:</b></td>
-                                <td><b>₹<% Response.Write(Session["grndTotalPrice"]); %></b></td>
+                                <td><b>zł<% Response.Write(Session["grndTotalPrice"]); %></b></td>
                                 <td></td>
                             </tr>
                             <tr>

@@ -17,7 +17,7 @@ namespace Food_Ordering_Project.Admin
         protected void lbLogout_Click(object sender, EventArgs e)
         {
             Session.Abandon();
-            Response.Redirect("../User/Login.aspx");
+            Response.Redirect("../User/Default.aspx");
         }
     }
 }

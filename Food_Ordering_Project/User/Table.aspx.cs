@@ -19,12 +19,27 @@ namespace Food_Ordering_Project.User
             {
                 if (Session["userId"] == null)
                 {
-                    Response.Redirect("Login.aspx");
+                    Response.Redirect("Default.aspx");
                 }
                 else
                 {
                     LoadTables();
                 }
+            }
+        }
+
+        protected string GetStatusClass(string status)
+        {
+            switch (status.ToLower())
+            {
+                case "wolny":
+                    return "status-available";
+                case "zajęty":
+                    return "status-occupied";
+                case "zarezerwowany":
+                    return "status-reserved";
+                default:
+                    return "";
             }
         }
 

@@ -110,10 +110,10 @@ namespace Food_Ordering_Project.User
                     con.Open();
                     cmd.ExecuteNonQuery();
                     actionName = userId == 0 ? 
-                        "registration is successful! <b><a href='Login.aspx'>Click here</a></b> to do login" :
+                        "registration is successful! <b><a href='Default.aspx'>Click here</a></b> to do login" :
                         "details updated successful! <b><a href='Profile.aspx'>Can check here</a></b>";
                     lblMsg.Visible = true;
-                    lblMsg.Text = "<b>" + txtUsername.Text.Trim() +"</b> " + actionName; //"Registration is successful! <b><a href='Login.aspx'>Click here</a></b> to do login.";
+                    lblMsg.Text = "<b>" + txtUsername.Text.Trim() +"</b> " + actionName; //"Registration is successful! <b><a href='Default.aspx'>Click here</a></b> to do login.";
                     lblMsg.CssClass = "alert alert-success";
                     if(userId !=0)
                     {

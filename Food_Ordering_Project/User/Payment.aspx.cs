@@ -10,7 +10,7 @@ namespace Food_Ordering_Project.User
         {
             if (!IsPostBack && Session["userId"] == null)
             {
-                Response.Redirect("Login.aspx");
+                Response.Redirect("Default.aspx");
             }
         }
         protected void CompletePayment(string paymentMode)

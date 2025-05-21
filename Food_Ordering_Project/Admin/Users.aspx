@@ -29,52 +29,52 @@
                                 <div class="card-block">
                                     <div class="row">
                                         <div class="col-12 mobile-inputs">
-                                            <h4 class="sub-title">Users Lists</h4>
-                                            <div class="card-block table-border-style">
-                                                <div class="table-responsive">
-                                                    <asp:Repeater ID="rUsers" runat="server" OnItemCommand="rUsers_ItemCommand">
-                                                        <HeaderTemplate>
-                                                            <table class="table data-table-export table-hover nowrap">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th class="table-plus">SrNo</th>
-                                                                        <th>Full Name</th>
-                                                                        <th>Username</th>
-                                                                        <th>Email</th>
-                                                                        <%--<th>Item Orders</th>
-                                                                        <th>Total Cost</th>--%>
-                                                                        <th>Joined Date</th>
-                                                                        <th class="datatable-nosort">Delete</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                        </HeaderTemplate>
-                                                        <ItemTemplate>
+<h4 class="sub-title">Lista użytkowników</h4>
+<div class="card-block table-border-style">
+    <div class="table-responsive">
+        <asp:Repeater ID="rUsers" runat="server" OnItemCommand="rUsers_ItemCommand">
+            <HeaderTemplate>
+                <table class="table data-table-export table-hover nowrap">
+                    <thead>
+                        <tr>
+                            <th class="table-plus">Lp.</th>
+                            <th>Imię i nazwisko</th>
+                            <th>Nazwa użytkownika</th>
+                            <th>Email</th>
+                            <%--<th>Zamówienia</th>
+                            <th>Łączny koszt</th>--%>
+                            <th>Data rejestracji</th>
+                            <th class="datatable-nosort">Usuń</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            </HeaderTemplate>
+            <ItemTemplate>
+                <tr>
+                    <td class="table-plus"><%# Eval("SrNo") %></td>
+                    <td><%# Eval("Name") %></td>
+                    <td><%# Eval("Username") %></td>
+                    <td><%# Eval("Email") %></td>
+                    <%--<td><%# Eval("TotalOrders") %></td>
+                    <td><%# Eval("TotalPrice") %></td>--%>
+                    <td><%# Eval("CreatedDate") %></td>
+                    <td>
+                        <asp:LinkButton ID="lnkDelete" Text="Usuń" runat="server" CommandName="delete"
+                            CssClass="badge bg-danger" CommandArgument='<%# Eval("UserId") %>'
+                            OnClientClick="return confirm('Czy na pewno chcesz usunąć tego użytkownika?');">
+                                <i class="ti-trash"></i>
+                        </asp:LinkButton>
+                    </td>
+                </tr>
+            </ItemTemplate>
+            <FooterTemplate>
+                </tbody>
+                </table>
+            </FooterTemplate>
+        </asp:Repeater>
+    </div>
+</div>
 
-                                                            <tr>
-                                                                <td class="table-plus"><%# Eval("SrNo") %></td>
-                                                                <td><%# Eval("Name") %></td>
-                                                                <td><%# Eval("Username") %></td>
-                                                                <td><%# Eval("Email") %></td>
-                                                                <%--<td><%# Eval("TotalOrders") %></td>
-                                                                <td><%# Eval("TotalPrice") %></td>--%>
-                                                                <td><%# Eval("CreatedDate") %></td>
-                                                                <td>
-                                                                    <asp:LinkButton ID="lnkDelete" Text="Delete" runat="server" CommandName="delete"
-                                                                        CssClass="badge bg-danger" CommandArgument='<%# Eval("UserId") %>'
-                                                                        OnClientClick="return confirm('Do you want to delete this user?');">
-                                                                            <i class="ti-trash"></i>
-                                                                    </asp:LinkButton>
-                                                                </td>
-                                                            </tr>
-                                                        </ItemTemplate>
-                                                        <FooterTemplate>
-                                                            </tbody>
-                                                            </table>
-                                                        </FooterTemplate>
-                                                    </asp:Repeater>
-                                                </div>
-                                            </div>
                                         </div>
 
                                     </div>

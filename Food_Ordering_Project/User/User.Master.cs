@@ -63,12 +63,12 @@ namespace Food_Ordering_Project.User
         {
             if (Session["userId"] == null)
             {
-                Response.Redirect("Login.aspx");
+                Response.Redirect("Default.aspx");
             }
             else
             {
                 Session.Abandon();
-                Response.Redirect("Login.aspx");
+                Response.Redirect("Default.aspx");
             }
         }
     }

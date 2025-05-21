@@ -1,125 +1,94 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/User/User.Master" AutoEventWireup="true" CodeBehind="Registration.aspx.cs" Inherits="Food_Ordering_Project.User.Registration" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="Registration.aspx.cs" Inherits="Food_Ordering_Project.User.Registration" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script>
-        /*For disappearing alert message*/
         window.onload = function () {
             var seconds = 5;
             setTimeout(function () {
                 document.getElementById("<%=lblMsg.ClientID %>").style.display = "none";
             }, seconds * 1000);
         };
-    </script>
 
-    <%--<script src="http://code.jquery.com/jquery-1.10.2.min.js" type="text/javascript"></script>--%>
-    <script type="text/javascript">
         function ImagePreview(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function (e) {
-                    $('#<%=imgUser.ClientID%>').prop('src', e.target.result)
-                        .width(200)
-                        .height(200);
+                    $('#<%=imgUser.ClientID%>').prop('src', e.target.result).width(200).height(200);
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
     </script>
 </asp:Content>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-
-    <section class="book_section layout_padding"> <%-- style="background-image: url('../Images/chef5.png'); width: 100%; height: 100%; background-repeat: no-repeat; background-size: contain; background-attachment: scroll; background-position: left"--%>
+    <section class="book_section layout_padding">
         <div class="container">
-            <div class="heading_container">
-                <div class="align-self-end">
-                    <asp:Label ID="lblMsg" runat="server" Visible="false"></asp:Label>
-                </div>
-                <asp:Label ID="lblHeaderMsg" runat="server" Text="<h2>User Registration</h2>"></asp:Label>
+            <div class="heading_container text-center mb-4">
+                <asp:Label ID="lblMsg" runat="server" Visible="false" CssClass="alert alert-info" />
+                <asp:Label ID="lblHeaderMsg" runat="server" Text="<h2>Rejestracja użytkownika</h2>"></asp:Label>
             </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form_container">
 
-                        <div>
-                            <asp:RequiredFieldValidator ID="rfvName" runat="server" ErrorMessage="Name is required" ControlToValidate="txtName"
-                                ForeColor="Red" Display="Dynamic" SetFocusOnError="true"></asp:RequiredFieldValidator>
-                            <asp:TextBox ID="txtName" runat="server" CssClass="form-control" placeholder="Enter Full Name"
-                                ToolTip="Full Name"></asp:TextBox>
-                            <asp:RegularExpressionValidator ID="RegularExpressionValidator1" runat="server" ErrorMessage="Name must be in characters"
-                                ForeColor="Red" Display="Dynamic" SetFocusOnError="true" ValidationExpression="^[a-zA-Z\s]+$"
-                                ControlToValidate="txtName">
-                            </asp:RegularExpressionValidator>
-                        </div>
-                        <div>
-                            <asp:RequiredFieldValidator ID="rfvUsername" runat="server" ErrorMessage="Username is required"
-                                ControlToValidate="txtUsername" ForeColor="Red" Display="Dynamic" SetFocusOnError="true"></asp:RequiredFieldValidator>
-                            <asp:TextBox ID="txtUsername" runat="server" CssClass="form-control" placeholder="Enter Username"
-                                ToolTip="Username"></asp:TextBox>
-                        </div>
-                        <div>
-                            <asp:RequiredFieldValidator ID="rfvEmail" runat="server" ErrorMessage="Email is required" ControlToValidate="txtEmail"
-                                ForeColor="Red" Display="Dynamic" SetFocusOnError="true"></asp:RequiredFieldValidator>
-                            <asp:TextBox ID="txtEmail" runat="server" CssClass="form-control" TextMode="Email" placeholder="Enter Email"
-                                ToolTip="Email"></asp:TextBox>
-                        </div>
-                        <div>
-                            <asp:RequiredFieldValidator ID="rfvMobile" runat="server" ErrorMessage="Mobile number is required" ControlToValidate="txtMobile"
-                                ForeColor="Red" Display="Dynamic" SetFocusOnError="true"></asp:RequiredFieldValidator>
-                            <asp:TextBox ID="txtMobile" runat="server" CssClass="form-control" TextMode="Number" placeholder="Enter Mobile Number"
-                                ToolTip="Mobile Number"></asp:TextBox>
-                            <asp:RegularExpressionValidator ID="RegularExpressionValidator2" runat="server" ErrorMessage="Mobile No. must have 10 digits"
-                                ForeColor="Red" Display="Dynamic" SetFocusOnError="true" ValidationExpression="^[0-9]{10}$"
-                                ControlToValidate="txtMobile">
-                            </asp:RegularExpressionValidator>
-                        </div>
-                    </div>
+            <div class="form_container d-flex flex-column gap-3 mx-auto" style="max-width: 600px;">
+                <asp:RequiredFieldValidator ID="rfvName" runat="server" ErrorMessage="Imię i nazwisko jest wymagane"
+                    ControlToValidate="txtName" ForeColor="Red" Display="Dynamic" SetFocusOnError="true" />
+                <asp:TextBox ID="txtName" runat="server" CssClass="form-control" placeholder="Wprowadź imię i nazwisko"
+                    ToolTip="Imię i nazwisko" />
+                <asp:RegularExpressionValidator ID="revName" runat="server" ErrorMessage="Imię i nazwisko może zawierać tylko litery"
+                    ForeColor="Red" Display="Dynamic" SetFocusOnError="true"
+                    ValidationExpression="^[A-Za-zĄąĆćĘęŁłŃńÓóŚśŹźŻż\s\-]+$" ControlToValidate="txtName" />
+
+                <asp:RequiredFieldValidator ID="rfvUsername" runat="server" ErrorMessage="Nazwa użytkownika jest wymagana"
+                    ControlToValidate="txtUsername" ForeColor="Red" Display="Dynamic" SetFocusOnError="true" />
+                <asp:TextBox ID="txtUsername" runat="server" CssClass="form-control" placeholder="Wprowadź nazwę użytkownika"
+                    ToolTip="Nazwa użytkownika" />
+
+                <asp:RequiredFieldValidator ID="rfvEmail" runat="server" ErrorMessage="Email jest wymagany"
+                    ControlToValidate="txtEmail" ForeColor="Red" Display="Dynamic" SetFocusOnError="true" />
+                <asp:TextBox ID="txtEmail" runat="server" CssClass="form-control" TextMode="Email"
+                    placeholder="Wprowadź email" ToolTip="Email" />
+
+                <asp:RequiredFieldValidator ID="rfvMobile" runat="server" ErrorMessage="Numer telefonu jest wymagany"
+                    ControlToValidate="txtMobile" ForeColor="Red" Display="Dynamic" SetFocusOnError="true" />
+                <asp:TextBox ID="txtMobile" runat="server" CssClass="form-control"
+                    TextMode="SingleLine" placeholder="Wprowadź numer telefonu" ToolTip="Numer telefonu" />
+                <asp:RegularExpressionValidator ID="revMobile" runat="server"
+                    ErrorMessage="Numer telefonu musi mieć 9 cyfr (opcjonalnie z +48)" ForeColor="Red" Display="Dynamic"
+                    SetFocusOnError="true" ValidationExpression="^(\+48)?\s?[0-9]{9}$" ControlToValidate="txtMobile" />
+
+                <asp:RequiredFieldValidator ID="rfvAddress" runat="server" ErrorMessage="Adres jest wymagany"
+                    ControlToValidate="txtAddress" ForeColor="Red" Display="Dynamic" SetFocusOnError="true" />
+                <asp:TextBox ID="txtAddress" runat="server" TextMode="MultiLine" CssClass="form-control"
+                    placeholder="Wprowadź adres" ToolTip="Adres" />
+
+                <asp:FileUpload ID="fuUserImage" runat="server" CssClass="form-control" ToolTip="User Image"
+                    onchange="ImagePreview(this);" />
+
+                <asp:TextBox ID="txtPostCode" runat="server" CssClass="form-control" TextMode="SingleLine"
+                    placeholder="Wprowadź kod pocztowy" ToolTip="Kod pocztowy" />
+                <asp:RegularExpressionValidator ID="revPostCode" runat="server"
+                    ErrorMessage="Kod pocztowy musi być w formacie NN-NNN" ForeColor="Red" Display="Dynamic"
+                    SetFocusOnError="true" ValidationExpression="^\d{2}-\d{3}$" ControlToValidate="txtPostCode" />
+
+                <asp:RequiredFieldValidator ID="rfvPassword" runat="server" ErrorMessage="PIN jest wymagany"
+                    ControlToValidate="txtPassword" ForeColor="Red" Display="Dynamic" SetFocusOnError="true" />
+                <asp:TextBox ID="txtPassword" runat="server" CssClass="form-control"
+                    placeholder="Wprowadź 4-cyfrowy PIN" TextMode="Password" ToolTip="PIN" />
+                <asp:RegularExpressionValidator ID="revPassword" runat="server"
+                    ErrorMessage="PIN musi składać się z dokładnie 4 cyfr" ForeColor="Red" Display="Dynamic"
+                    SetFocusOnError="true" ValidationExpression="^\d{4}$" ControlToValidate="txtPassword" />
+
+                <div class="text-center mt-4">
+                    <asp:Button ID="btnRegister" runat="server" Text="Zarejestruj"
+                        CssClass="btn btn-success btn-lg rounded-pill px-5 text-white" OnClick="btnRegister_Click" />
+                    <asp:Label ID="lblAlreadyUser" runat="server" CssClass="d-block mt-2 text-muted" />
                 </div>
-                <div class="col-md-6">
-                    <div class="form_container">
-                        <div>
-                            <asp:RequiredFieldValidator ID="rfvAddress" runat="server" ErrorMessage="Address is required" ControlToValidate="txtAddress"
-                                ForeColor="Red" Display="Dynamic" SetFocusOnError="true"></asp:RequiredFieldValidator>
-                            <asp:TextBox ID="txtAddress" runat="server" TextMode="MultiLine" CssClass="form-control"
-                                placeholder="Enter Address" ToolTip="Address"></asp:TextBox>
-                        </div>
-                        <div>
-                            <asp:RequiredFieldValidator ID="rfvPostCode" runat="server" ErrorMessage="Post/Zip Code is required" ControlToValidate="txtPostCode"
-                                ForeColor="Red" Display="Dynamic" SetFocusOnError="true"></asp:RequiredFieldValidator>
-                            <asp:TextBox ID="txtPostCode" runat="server" CssClass="form-control" TextMode="Number" placeholder="Enter Post/Zip Code"
-                                ToolTip="Post/Zip Code"></asp:TextBox>
-                            <asp:RegularExpressionValidator ID="RegularExpressionValidator4" runat="server" ControlToValidate="txtPostCode"
-                                ErrorMessage="Post/Zip Code must be of 6 digits" ForeColor="Red" Display="Dynamic" SetFocusOnError="true"
-                                ValidationExpression="[0-9]{6}"></asp:RegularExpressionValidator>
-                        </div>
-                        <div>
-                            <asp:FileUpload ID="fuUserImage" runat="server" CssClass="form-control" ToolTip="User Image"
-                                onchange="ImagePreview(this);" />
-                        </div>
-                        <div>
-                            <asp:RequiredFieldValidator ID="rfvPassword" runat="server" ErrorMessage="Password is required" ControlToValidate="txtPassword"
-                                ForeColor="Red" Display="Dynamic" SetFocusOnError="true"></asp:RequiredFieldValidator>
-                            <asp:TextBox ID="txtPassword" runat="server" CssClass="form-control" placeholder="Enter Password" TextMode="Password"
-                                ToolTip="Password"></asp:TextBox>
-                        </div>
-                    </div>
-                </div>
-                <div class="row pl-4">
-                    <div class="btn_box">
-                        <asp:Button ID="btnRegister" runat="server" Text="Register" CssClass="btn btn-success rounded-pill pl-4 pr-4 text-white"
-                            OnClick="btnRegister_Click" />
-                        <%--<span class="pl-3 text-black-100">Already registered? <a href="Login.aspx" class="badge badge-info">Login here..</a></span>--%>
-                        <asp:Label ID="lblAlreadyUser" runat="server" CssClass="pl-3 text-black-100"
-                            Text="Already registered? <a href='Login.aspx' class='badge badge-info'>Login here..</a>">
-                        </asp:Label>
-                    </div>
-                </div>
-                <div class="row p-5">
-                    <div style="align-items:center">
-                        <asp:Image ID="imgUser" runat="server" CssClass="img-thumbnail" />
-                    </div>
+
+                <div class="text-center mt-4">
+                    <asp:Image ID="imgUser" runat="server" CssClass="img-thumbnail" Width="200" Height="200" />
                 </div>
             </div>
         </div>
     </section>
-
 </asp:Content>
+

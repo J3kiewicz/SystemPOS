@@ -3,7 +3,6 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script>
-        /*For disappearing alert message*/
         window.onload = function () {
             var seconds = 5;
             setTimeout(function () {
@@ -25,64 +24,57 @@
         }
     </script>
 </asp:Content>
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="pcoded-inner-content pt-0">
         <div class="align-self-end">
             <asp:Label ID="lblMsg" runat="server" Visible="false"></asp:Label>
         </div>
-        <!-- Main-body start -->
+
         <div class="main-body">
             <div class="page-wrapper">
-                <!-- Page body start -->
                 <div class="page-body">
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="card">
                                 <div class="card-header">
+                                    <h4 class="sub-title">Zarządzanie kategoriami</h4>
                                 </div>
                                 <div class="card-block">
                                     <div class="row">
                                         <div class="col-sm-6 col-md-4 col-lg-4">
-                                            <h4 class="sub-title">Category</h4>
+                                            <h5 class="mb-3">Dodaj / Edytuj kategorię</h5>
+                                            <div class="form-group">
+                                                <label>Nazwa kategorii</label>
+                                                <asp:TextBox ID="txtName" runat="server" CssClass="form-control"
+                                                    placeholder="Wprowadź nazwę kategorii" required></asp:TextBox>
+                                                <asp:HiddenField ID="hdnId" runat="server" Value="0" />
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Obraz kategorii</label>
+                                                <asp:FileUpload ID="fuCategoryImage" runat="server" CssClass="form-control" onchange="ImagePreview(this);" />
+                                            </div>
+
+                                            <div class="form-check pl-4 pb-3">
+                                                <asp:CheckBox ID="cbIsActive" runat="server" Text="&nbsp; Aktywna" CssClass="form-check-input" />
+                                            </div>
+
+                                            <div class="pb-4">
+                                                <asp:Button ID="btnAddOrUpdate" runat="server" Text="Dodaj" CssClass="btn btn-success"
+                                                    OnClick="btnAddOrUpdate_Click" />
+                                                &nbsp;
+                                                <asp:Button ID="btnClear" runat="server" Text="Wyczyść" CssClass="btn btn-secondary"
+                                                    OnClick="btnClear_Click" CausesValidation="false" />
+                                            </div>
+
                                             <div>
-                                                <div class="form-group">
-                                                    <label>Category Name</label>
-                                                    <div>
-                                                        <%--<input type="text" class="form-control" placeholder="Enter Category Name">--%>
-                                                        <asp:TextBox ID="txtName" runat="server" CssClass="form-control"
-                                                            placeholder="Enter Category Name" required></asp:TextBox>
-                                                        <asp:HiddenField ID="hdnId" runat="server" Value="0" />
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Category Image</label>
-                                                    <div>
-                                                        <%--<input type="file" class="form-control">--%>
-                                                        <asp:FileUpload ID="fuCategoryImage" runat="server" CssClass="form-control" onchange="ImagePreview(this);"/>
-                                                    </div>
-                                                </div>
-                                                <div class="form-check pl-4">
-                                                    <%--<label class="form-check-label">
-                                                        <input type="checkbox" class="form-check-input" value="">
-                                                        IsActive
-                                                    </label>--%>
-                                                    <asp:CheckBox ID="cbIsActive" runat="server" Text="&nbsp; IsActive" CssClass="form-check-input" />
-                                                </div>
-                                                <div class="pb-5">
-                                                    <asp:Button ID="btnAddOrUpdate" runat="server" Text="Add" CssClass="btn btn-primary"
-                                                        OnClick="btnAddOrUpdate_Click" />
-                                                    &nbsp;
-                                                    <asp:Button ID="btnClear" runat="server" Text="Clear" CssClass="btn btn-primary"
-                                                        OnClick="btnClear_Click" CausesValidation="false" />
-                                                </div>
-                                                <div>
-                                                    <asp:Image ID="imgCategory" runat="server" CssClass="img-thumbnail" />
-                                                </div>
+                                                <asp:Image ID="imgCategory" runat="server" CssClass="img-thumbnail" />
                                             </div>
                                         </div>
-                                        <div class="col-sm-6 col-md-8 col-lg-8 mobile-inputs">
-                                            <h4 class="sub-title">Category Lists</h4>
+
+                                        <div class="col-sm-6 col-md-8 col-lg-8">
+                                            <h5 class="mb-3">Lista kategorii</h5>
                                             <div class="card-block table-border-style">
                                                 <div class="table-responsive">
                                                     <asp:Repeater ID="rCategpry" runat="server" OnItemCommand="rCategpry_ItemCommand"
@@ -91,58 +83,53 @@
                                                             <table class="table data-table-export table-hover nowrap">
                                                                 <thead>
                                                                     <tr>
-                                                                        <th class="table-plus">Name</th>
-                                                                        <th>Image</th>
-                                                                        <th>IsActive</th>
-                                                                        <th>CreatedDate</th>
-                                                                        <th class="datatable-nosort">Action</th>
+                                                                        <th class="table-plus">Nazwa</th>
+                                                                        <th>Obraz</th>
+                                                                        <th>Aktywna</th>
+                                                                        <th>Data utworzenia</th>
+                                                                        <th class="datatable-nosort">Akcja</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
                                                         </HeaderTemplate>
                                                         <ItemTemplate>
-
                                                             <tr>
                                                                 <td class="table-plus"><%# Eval("Name") %></td>
                                                                 <td>
-                                                                    <img width="40" src="<%# Utils.GetImageUrl( Eval("ImageUrl")) %>" 
-                                                                        alt='<%# Eval("ImageUrl") %>'>
+                                                                    <img width="40" src="<%# Utils.GetImageUrl(Eval("ImageUrl")) %>" alt='<%# Eval("ImageUrl") %>' />
                                                                 </td>
                                                                 <td>
-                                                                    <asp:Label ID="lblIsActive" runat="server" Text='<%# Eval("IsActive") %>'></asp:Label>
+                                                                    <asp:Label ID="lblIsActive" runat="server" Text='<%# Eval("IsActive").ToString() == "True" ? "Tak" : "Nie" %>'></asp:Label>
                                                                 </td>
                                                                 <td><%# Eval("CreatedDate") %></td>
                                                                 <td>
-                                                                    <asp:LinkButton ID="lnkEdit" Text="Edit" runat="server" CssClass="badge badge-primary"
+                                                                    <asp:LinkButton ID="lnkEdit" Text="Edytuj" runat="server" CssClass="badge badge-primary"
                                                                         CommandArgument='<%# Eval("CategoryId") %>' CommandName="edit">
-                                                                            <i class="ti-pencil"></i>
+                                                                        <i class="ti-pencil"></i>
                                                                     </asp:LinkButton>
-                                                                    <asp:LinkButton ID="lnkDelete" Text="Delete" runat="server" CommandName="delete"
+                                                                    <asp:LinkButton ID="lnkDelete" Text="Usuń" runat="server" CommandName="delete"
                                                                         CssClass="badge bg-danger" CommandArgument='<%# Eval("CategoryId") %>'
-                                                                        OnClientClick="return confirm('Do you want to delete this category?');">
-                                                                            <i class="ti-trash"></i>
+                                                                        OnClientClick="return confirm('Czy na pewno chcesz usunąć tę kategorię?');">
+                                                                        <i class="ti-trash"></i>
                                                                     </asp:LinkButton>
                                                                 </td>
                                                             </tr>
                                                         </ItemTemplate>
                                                         <FooterTemplate>
-                                                            </tbody>
+                                                                </tbody>
                                                             </table>
                                                         </FooterTemplate>
                                                     </asp:Repeater>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> <!-- row -->
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <!-- Page body end -->
-            </div>
-        </div>
-        <!-- Main-body start -->
-    </div>
-
+                    </div> <!-- row -->
+                </div> <!-- page-body -->
+            </div> <!-- page-wrapper -->
+        </div> <!-- main-body -->
+    </div> <!-- inner-content -->
 </asp:Content>

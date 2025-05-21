@@ -32,7 +32,7 @@ namespace Food_Ordering_Project.User
         {
             if (Session["userId"] == null)
             {
-                Response.Redirect("Login.aspx");
+                Response.Redirect("Default.aspx");
             }
 
             if (!IsPostBack && Request.QueryString["NewOrder"] == "1")
@@ -56,7 +56,7 @@ namespace Food_Ordering_Project.User
             if (Session["userId"] == null || !int.TryParse(Session["userId"].ToString(), out int userId))
             {
                 ShowMessage("Sesja wygasła. Zaloguj się ponownie", "danger");
-                Response.Redirect("Login.aspx");
+                Response.Redirect("Default.aspx");
                 return;
             }
 
@@ -417,8 +417,8 @@ namespace Food_Ordering_Project.User
         //}
         private void CheckoutOrder()
         {
-            if (ValidateStockAvailability())
-            {
+            
+            
                 UpdateCart();
 
                 // ZAPISZ ID ZAMÓWIENIA W SESJI PRZED PRZEKIEROWANIEM
@@ -426,27 +426,9 @@ namespace Food_Ordering_Project.User
                 Session["CurrentTableId"] = CurrentTableId;
 
                 Response.Redirect($"Payment.aspx?OrderDetailsId={CurrentOrderDetailsId}&TableId={CurrentTableId}");
-            }
+            
         }
-        private bool ValidateStockAvailability()
-        {
-            foreach (RepeaterItem item in rCartItem.Items)
-            {
-                if (item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem)
-                {
-                    HiddenField cartQuantity = item.FindControl("hdnQuantity") as HiddenField;
-                    HiddenField productQuantity = item.FindControl("hdnPrdQuantity") as HiddenField;
-                    Label productName = item.FindControl("lblName") as Label;
 
-                    if (Convert.ToInt32(cartQuantity.Value) > Convert.ToInt32(productQuantity.Value))
-                    {
-                        ShowMessage($"Produkt '{productName.Text}' jest niedostępny w żądanej ilości!", "warning");
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
 
         protected void rCartItem_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {

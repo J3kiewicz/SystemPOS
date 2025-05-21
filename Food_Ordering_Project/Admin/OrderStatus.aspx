@@ -68,7 +68,7 @@
                                                                         CssClass='<%# GetStatusBadgeClass(Eval("Status").ToString()) %>'>
                                                                     </asp:Label>
                                                                 </td>
-                                                                <td><%# "Stolik " + Eval("TableName") %></td>
+                                                                <td><%# Eval("TableName") %></td>
                                                                 <td><%# Eval("TotalQuantity") %></td>
                                                                 <td><%# Eval("TotalPrice", "{0:C}") %></td>
                                                                 <td><%# Eval("PaymentMode") %></td>

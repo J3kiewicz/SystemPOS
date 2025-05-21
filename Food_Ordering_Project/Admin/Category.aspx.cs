@@ -24,7 +24,7 @@ namespace Food_Ordering_Project.Admin
                 Session["breadCrum"] = "Category";
                 if (Session["admin"] == null)
                 {
-                    Response.Redirect("../User/Login.aspx");
+                    Response.Redirect("../User/Default.aspx");
                 }
                 else
                 {

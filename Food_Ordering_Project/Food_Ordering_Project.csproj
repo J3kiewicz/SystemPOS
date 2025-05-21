@@ -75,7 +75,6 @@
     <Content Include="Admin\Dashboard.aspx" />
     <Content Include="Admin\OrderStatus.aspx" />
     <Content Include="Admin\Products.aspx" />
-    <Content Include="Admin\Report.aspx" />
     <Content Include="Admin\Users.aspx" />
     <Content Include="assets\css\animate.css\css\animate.css" />
     <Content Include="assets\css\bootstrap\css\bootstrap.min.css" />
@@ -225,18 +224,10 @@
     <Content Include="TemplateFiles\js\bootstrap.js" />
     <Content Include="TemplateFiles\js\custom.js" />
     <Content Include="TemplateFiles\js\jquery-3.4.1.min.js" />
-    <Content Include="User\About.aspx" />
-    <Content Include="User\Cart.aspx" />
     <Content Include="User\Default.aspx" />
-    <Content Include="User\Invoice.aspx" />
-    <Content Include="User\Login.aspx" />
-    <Content Include="User\Menu.aspx" />
-    <Content Include="User\MenuUserControl.ascx" />
     <Content Include="User\Order.aspx" />
     <Content Include="User\Payment.aspx" />
-    <Content Include="User\Profile.aspx" />
     <Content Include="User\Registration.aspx" />
-    <Content Include="User\SliderUserControl.ascx" />
     <Content Include="User\Table.aspx" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -276,13 +267,6 @@
     <Compile Include="Admin\Products.aspx.designer.cs">
       <DependentUpon>Products.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Admin\Report.aspx.cs">
-      <DependentUpon>Report.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Admin\Report.aspx.designer.cs">
-      <DependentUpon>Report.aspx</DependentUpon>
-    </Compile>
     <Compile Include="Admin\Users.aspx.cs">
       <DependentUpon>Users.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -295,54 +279,12 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="User\About.aspx.cs">
-      <DependentUpon>About.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="User\About.aspx.designer.cs">
-      <DependentUpon>About.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="User\Cart.aspx.cs">
-      <DependentUpon>Cart.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="User\Cart.aspx.designer.cs">
-      <DependentUpon>Cart.aspx</DependentUpon>
-    </Compile>
     <Compile Include="User\Default.aspx.cs">
       <DependentUpon>Default.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="User\Default.aspx.designer.cs">
       <DependentUpon>Default.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="User\Invoice.aspx.cs">
-      <DependentUpon>Invoice.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="User\Invoice.aspx.designer.cs">
-      <DependentUpon>Invoice.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="User\Login.aspx.cs">
-      <DependentUpon>Login.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="User\Login.aspx.designer.cs">
-      <DependentUpon>Login.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="User\Menu.aspx.cs">
-      <DependentUpon>Menu.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="User\Menu.aspx.designer.cs">
-      <DependentUpon>Menu.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="User\MenuUserControl.ascx.cs">
-      <DependentUpon>MenuUserControl.ascx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="User\MenuUserControl.ascx.designer.cs">
-      <DependentUpon>MenuUserControl.ascx</DependentUpon>
     </Compile>
     <Compile Include="User\Order.aspx.cs">
       <DependentUpon>Order.aspx</DependentUpon>
@@ -358,26 +300,12 @@
     <Compile Include="User\Payment.aspx.designer.cs">
       <DependentUpon>Payment.aspx</DependentUpon>
     </Compile>
-    <Compile Include="User\Profile.aspx.cs">
-      <DependentUpon>Profile.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="User\Profile.aspx.designer.cs">
-      <DependentUpon>Profile.aspx</DependentUpon>
-    </Compile>
     <Compile Include="User\Registration.aspx.cs">
       <DependentUpon>Registration.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="User\Registration.aspx.designer.cs">
       <DependentUpon>Registration.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="User\SliderUserControl.ascx.cs">
-      <DependentUpon>SliderUserControl.ascx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="User\SliderUserControl.ascx.designer.cs">
-      <DependentUpon>SliderUserControl.ascx</DependentUpon>
     </Compile>
     <Compile Include="User\Table.aspx.cs">
       <DependentUpon>Table.aspx</DependentUpon>

@@ -51,13 +51,13 @@ namespace Food_Ordering_Project.User
         protected global::System.Web.UI.WebControls.LinkButton lbLoginOrLogout;
 
         /// <summary>
-        /// Kontrolka pnlSliderUC.
+        /// Kontrolka lbLoginLogoutText.
         /// </summary>
         /// <remarks>
         /// Pole generowane automatycznie.
         /// Aby wprowadzić zmiany, przenieś deklarację pola z pliku projektanta do pliku codebehind.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlSliderUC;
+        protected global::System.Web.UI.WebControls.Label lbLoginLogoutText;
 
         /// <summary>
         /// Kontrolka ContentPlaceHolder1.
