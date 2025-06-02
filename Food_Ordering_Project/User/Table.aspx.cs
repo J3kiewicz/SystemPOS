@@ -45,7 +45,7 @@ namespace Food_Ordering_Project.User
 
         private void LoadTables()
         {
-            // Pobieramy rzeczywiste stoliki z bazy zamiast tworzyć sztuczne
+            
             con = new SqlConnection(Connection.GetConnectionString());
             cmd = new SqlCommand("SELECT TableId, TableName FROM Tables WHERE IsActive = 1", con);
             sda = new SqlDataAdapter(cmd);
@@ -84,7 +84,7 @@ namespace Food_Ordering_Project.User
                         string statusHtml = $"<div class='table-selector-item {busyClass}'>" +
                                           $"<div class='table-selector-name'>Stolik {reader["TableId"]}</div>";
 
-                        if (!reader.IsDBNull(2)) // Jeśli TotalAmount nie jest NULL (czyli jest rachunek)
+                        if (!reader.IsDBNull(2)) 
                         {
                             statusHtml += $"<div class='table-selector-info table-selector-status-busy'>Rachunek: {Convert.ToDecimal(reader["TotalAmount"]):C}</div>";
                                          
@@ -108,7 +108,6 @@ namespace Food_Ordering_Project.User
         private int _currentTableId = 0;
         private int _currentOrderId = 0;
 
-        // Zmodyfikuj rTables_ItemCommand
         protected void rTables_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             if (e.CommandName == "SelectTable")

@@ -36,6 +36,12 @@
 	<link rel="stylesheet" type="text/css" href="../assets/datatables/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="../assets/datatables/css/icon-font.min.css">
     <!-- Datatables end -->
+    <style>
+        .danger-breadcrumb {
+    background-color: #FFC000 !important;
+}
+
+    </style>
 
     <script type="text/javascript" src="../assets/js/jquery/jquery.min.js"></script>
     <script>
@@ -162,7 +168,7 @@
                                 <div class="pcoded-navigatio-lavel" data-i18n="nav.category.navigation">Zarządzaj kategoriami</div>
                                 <ul class="pcoded-item pcoded-left-item">
                                     <li>
-                                        <a href="Category.aspx">
+                                        <a href="/Admin/Category.aspx">
                                             <span class="pcoded-micon"><i class="ti-layout-grid2-alt"></i></span>
                                             <span class="pcoded-mtext" data-i18n="nav.basic-components.main">Kategorie</span>
                                             <span class="pcoded-mcaret"></span>

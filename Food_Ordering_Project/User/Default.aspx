@@ -30,6 +30,7 @@
             display: flex;
             border: 2px solid var(--dark-color);
         }
+
         
         .login-image {
             flex: 1;

@@ -71,24 +71,22 @@
     </style>
     <script>
 
-        // Obsługa kliknięcia kategorii
+      
         $(document).ready(function () {
             $('.filters_menu li').click(function () {
-                // Usuń klasę active ze wszystkich elementów
+  
                 $('.filters_menu li').removeClass('active');
-                // Dodaj klasę active do klikniętego elementu
+          
                 $(this).addClass('active');
 
-                // Pobierz wartość filtra
+       
                 var filterValue = $(this).attr('data-filter');
                 var categoryId = $(this).attr('data-id');
 
-                // Filtruj produkty
                 $('.grid .all').hide();
-                $('.grid').find('div' + filterValue).show(); // Dodaj 'div' przed filtrem
+                $('.grid').find('div' + filterValue).show(); 
 
-                // Możesz też wysłać to do serwera, jeśli potrzebujesz
-                // __doPostBack('', categoryId);
+
             });
         });
         window.onload = function () {
@@ -102,7 +100,7 @@
             $('#splitBillModal').modal('show');
         }
 
-        // Handle the button click
+
         $(document).ready(function () {
             $('.btn-split-bill').click(function (e) {
                 e.preventDefault();
@@ -110,13 +108,13 @@
     });
         });
 
-        // Funkcja do dodawania produktów do koszyka
+    
         function addProductToCart(event, productId) {
             event.preventDefault();
-            // Symuluj kliknięcie przycisku dodania do koszyka
+ 
             __doPostBack('<%= rProducts.UniqueID %>', 'addToCart$' + productId);
 
-            // Efekt wizualny
+   
             var box = event.target.closest('.box');
             box.classList.add('added-to-cart');
             setTimeout(function () {

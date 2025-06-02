@@ -1,7 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="Users.aspx.cs" Inherits="Food_Ordering_Project.Admin.Users" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script>
-        /*For disappearing alert message*/
+
         window.onload = function () {
             var seconds = 5;
             setTimeout(function () {
@@ -16,10 +16,10 @@
         <div class="align-self-end">
             <asp:Label ID="lblMsg" runat="server" Visible="false"></asp:Label>
         </div>
-        <!-- Main-body start -->
+
         <div class="main-body">
             <div class="page-wrapper">
-                <!-- Page body start -->
+            
                 <div class="page-body">
                     <div class="row">
                         <div class="col-sm-12">
@@ -41,8 +41,7 @@
                             <th>Imię i nazwisko</th>
                             <th>Nazwa użytkownika</th>
                             <th>Email</th>
-                            <%--<th>Zamówienia</th>
-                            <th>Łączny koszt</th>--%>
+                  
                             <th>Data rejestracji</th>
                             <th class="datatable-nosort">Usuń</th>
                         </tr>
@@ -55,8 +54,7 @@
                     <td><%# Eval("Name") %></td>
                     <td><%# Eval("Username") %></td>
                     <td><%# Eval("Email") %></td>
-                    <%--<td><%# Eval("TotalOrders") %></td>
-                    <td><%# Eval("TotalPrice") %></td>--%>
+            
                     <td><%# Eval("CreatedDate") %></td>
                     <td>
                         <asp:LinkButton ID="lnkDelete" Text="Usuń" runat="server" CommandName="delete"
@@ -83,10 +81,10 @@
                         </div>
                     </div>
                 </div>
-                <!-- Page body end -->
+         
             </div>
         </div>
-        <!-- Main-body start -->
+    
     </div>
 
 </asp:Content>

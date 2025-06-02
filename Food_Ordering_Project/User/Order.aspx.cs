@@ -396,32 +396,13 @@ namespace Food_Ordering_Project.User
                 cmd.ExecuteNonQuery();
             }
         }
-        //private void CheckoutOrder()
-        //{
-        //    if (ValidateStockAvailability())
-        //    {
-        //        // Zapisujemy wszystkie zmiany przed przejściem do płatności
-        //        UpdateCart();
-
-        //        // Oznaczamy zamówienie jako zakończone
-        //        using (SqlConnection con = new SqlConnection(Connection.GetConnectionString()))
-        //        {
-        //            con.Open();
-        //            cmd = new SqlCommand("UPDATE Orders SET Status = 'Completed' WHERE OrderDetailsId = @OrderDetailsId", con);
-        //            cmd.Parameters.AddWithValue("@OrderDetailsId", CurrentOrderDetailsId);
-        //            cmd.ExecuteNonQuery();
-        //        }
-
-        //        Response.Redirect($"Payment.aspx?OrderDetailsId={CurrentOrderDetailsId}&TableId={CurrentTableId}");
-        //    }
-        //}
+    
         private void CheckoutOrder()
         {
             
             
                 UpdateCart();
 
-                // ZAPISZ ID ZAMÓWIENIA W SESJI PRZED PRZEKIEROWANIEM
                 Session["CurrentOrderDetailsId"] = CurrentOrderDetailsId;
                 Session["CurrentTableId"] = CurrentTableId;
 
@@ -448,7 +429,6 @@ namespace Food_Ordering_Project.User
 
         protected void lbBackToTables_Click(object sender, EventArgs e)
         {
-            // Zapisujemy zmiany przed powrotem do listy stolików
             UpdateCart();
             Response.Redirect("Table.aspx");
         }
@@ -569,13 +549,10 @@ namespace Food_Ordering_Project.User
                 return;
             }
 
-            // Utwórz nowe zamówienie
             int newOrderId = CreateNewOrder(targetTableId);
 
-            // Przenieś wybrane produkty
             MoveProductsToNewOrder(newOrderId);
 
-            // Odśwież stronę
             Response.Redirect($"Order.aspx?TableId={CurrentTableId}&OrderDetailsId={CurrentOrderDetailsId}");
         }
 
@@ -645,7 +622,7 @@ namespace Food_Ordering_Project.User
                 {
                     foreach (var item in itemsToMove)
                     {
-                        // Użyj procedury Cart_Crud do przeniesienia produktów
+                     
                         SqlCommand cmd = new SqlCommand("Cart_Crud", con, transaction);
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@Action", "MOVE");
@@ -668,7 +645,6 @@ namespace Food_Ordering_Project.User
         }
 
 
-        // Klasa pomocnicza do przechowywania informacji o produktach do przeniesienia
         public class CartItemToMove
         {
             public int CartId { get; set; }

@@ -37,7 +37,6 @@ namespace Food_Ordering_Project
             return isValid;
         }
 
-        // Setting default image if their is no image for any job.
         public static string GetImageUrl(Object url)
         {
             string url1 = "";
@@ -49,7 +48,7 @@ namespace Food_Ordering_Project
             {
                 url1 = string.Format("../{0}", url);
             }
-            //return ResolveUrl(url1);
+          
             return url1;
         }
 
@@ -99,7 +98,6 @@ namespace Food_Ordering_Project
             return dt.Rows.Count;
         }
 
-        // Generates Unique ID
         public static string GetUniqueId()
         {
             Guid obj = Guid.NewGuid();

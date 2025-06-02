@@ -92,7 +92,7 @@ namespace Food_Ordering_Project.Admin
                 }
                 else
                 {
-                    // Jeśli aktualizacja i nie wybrano nowego obrazka, zachowaj istniejący
+                    
                     if (productId > 0)
                     {
                         cmd.Parameters.AddWithValue("@ImageUrl", imgProduct.ImageUrl.Replace("../", ""));

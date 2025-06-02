@@ -13,7 +13,7 @@ namespace Food_Ordering_Project.User
         SqlDataAdapter sda;
         DataTable dt;
 
-        // Deklaracje kontrolek
+ 
         protected TextBox txtPin1;
         protected TextBox txtPin2;
         protected TextBox txtPin3;
@@ -28,12 +28,10 @@ namespace Food_Ordering_Project.User
                 Response.Redirect("Table.aspx");
             }
 
-            // Ensure ContentPlaceHolder1 is properly referenced
             ContentPlaceHolder contentPlaceHolder = (ContentPlaceHolder)this.Master.FindControl("ContentPlaceHolder1");
 
             if (contentPlaceHolder != null)
             {
-                // Initialize controls within the ContentPlaceHolder
                 txtPin1 = (TextBox)contentPlaceHolder.FindControl("txtPin1");
                 txtPin2 = (TextBox)contentPlaceHolder.FindControl("txtPin2");
                 txtPin3 = (TextBox)contentPlaceHolder.FindControl("txtPin3");
@@ -49,7 +47,7 @@ namespace Food_Ordering_Project.User
 
         protected void btnLogin_Click(object sender, EventArgs e)
         {
-            // Pobieramy PIN z pól tekstowych
+       
             string pin = txtPin1.Text + txtPin2.Text + txtPin3.Text + txtPin4.Text;
 
             if (string.IsNullOrEmpty(pin) || pin.Length != 4)
@@ -58,7 +56,6 @@ namespace Food_Ordering_Project.User
                 return;
             }
 
-            // Check for admin PIN (e.g., 0000)
             if (pin == "0000")
             {
                 Session["admin"] = "Admin";
@@ -66,7 +63,7 @@ namespace Food_Ordering_Project.User
                 return;
             }
 
-            // Check for user PIN in database
+
             con = new SqlConnection(Connection.GetConnectionString());
             cmd = new SqlCommand("User_Crud", con);
             cmd.Parameters.AddWithValue("@Action", "SELECT_BY_PIN");

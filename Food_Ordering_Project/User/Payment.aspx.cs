@@ -15,7 +15,7 @@ namespace Food_Ordering_Project.User
         }
         protected void CompletePayment(string paymentMode)
         {
-            // Pobierz ID zamówienia i stolika z sesji lub query string
+          
             int orderDetailsId = Session["CurrentOrderDetailsId"] != null ?
                 (int)Session["CurrentOrderDetailsId"] :
                 (Request.QueryString["OrderDetailsId"] != null ?
@@ -41,7 +41,7 @@ namespace Food_Ordering_Project.User
                     {
                         try
                         {
-                            // 1. Sprawdź czy zamówienie istnieje i nie jest zakończone
+ 
                             SqlCommand checkCmd = new SqlCommand(
                                 @"SELECT 1 FROM Orders 
                           WHERE OrderDetailsId = @OrderDetailsId 
@@ -56,7 +56,6 @@ namespace Food_Ordering_Project.User
                                 throw new Exception("Aktywne zamówienie nie istnieje lub zostało już zakończone");
                             }
 
-                            // 2. Dodaj płatność (POPRAWIONE - zgodnie ze strukturą tabeli)
                             SqlCommand paymentCmd = new SqlCommand(
                                 @"INSERT INTO Payment (PaymentMode) 
                           OUTPUT INSERTED.PaymentId 
@@ -65,7 +64,6 @@ namespace Food_Ordering_Project.User
                             paymentCmd.Parameters.AddWithValue("@Mode", paymentMode);
                             int paymentId = (int)paymentCmd.ExecuteScalar();
 
-                            // 3. Zaktualizuj status zamówienia
                             SqlCommand orderCmd = new SqlCommand(
                                 @"UPDATE Orders SET 
                             Status = 'Completed',
@@ -81,7 +79,6 @@ namespace Food_Ordering_Project.User
                                 throw new Exception("Nie udało się zaktualizować zamówienia");
                             }
 
-                            // 4. Zwolnij stolik
                             SqlCommand tableCmd = new SqlCommand(
                                 @"UPDATE Tables SET IsActive = 1 
                           WHERE TableId = @TableId",
@@ -91,7 +88,7 @@ namespace Food_Ordering_Project.User
 
                             transaction.Commit();
 
-                            // 5. Wyczyść sesję i przekieruj
+                    
                             Session["CurrentOrderDetailsId"] = null;
                             Session["CurrentTableId"] = null;
 
